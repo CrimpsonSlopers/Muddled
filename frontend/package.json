@@ -1,0 +1,34 @@
+{
+    "name": "frontend",
+    "version": "1.0.0",
+    "description": "Muddle Frontend",
+    "main": "webpack.config.js",
+    "scripts": {
+        "dev": "webpack --mode development --watch",
+        "build": "webpack --mode production"
+    },
+    "keywords": [],
+    "author": "John Rogers",
+    "license": "ISC",
+    "devDependencies": {
+        "@babel/core": "^7.22.9",
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
+        "@babel/preset-env": "^7.22.9",
+        "@babel/preset-react": "^7.22.5",
+        "babel-loader": "^9.1.3",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "webpack": "^5.88.1",
+        "webpack-cli": "^5.1.4"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.11.1",
+        "@emotion/styled": "^11.11.0",
+        "@mui/icons-material": "^5.14.0",
+        "@mui/material": "^5.14.0",
+        "chroma-js": "^2.4.2",
+        "js-cookie": "^3.0.5",
+        "react-router-dom": "^6.14.1",
+        "websocket": "^1.0.34"
+    }
+}
