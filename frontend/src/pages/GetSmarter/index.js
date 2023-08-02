@@ -102,7 +102,7 @@ export default function GetSmarterPage() {
                 messages.forEach(message => {
                     let parsedMessage = parseMessage(message);
                     if (parsedMessage) {
-                        // console.log(`Message command: ${parsedMessage.command.command}`);
+                        console.log(`Message command: ${parsedMessage.command.command}`);
                         // console.log(`\n${JSON.stringify(parsedMessage, null, 3)}`)
 
                         switch (parsedMessage.command.command) {
