@@ -115,7 +115,7 @@ export default function GetSmarterPage() {
                                         let id = youtube_parser(match)
 
                                         if (id) {
-                                            fetch('http://localhost:8000/api/parse_irc_message', {
+                                            fetch('api/parse_irc_message', {
                                                 method: "POST",
                                                 headers: {
                                                     "X-CSRFToken": Cookies.get('csrftoken'),
