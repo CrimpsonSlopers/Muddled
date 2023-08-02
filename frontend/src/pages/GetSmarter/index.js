@@ -20,7 +20,7 @@ import TickerHeader from "../../components/TickerHeader";
 
 const password = "midf6aaz8hgc14usszu0dgmmo2gqdd";
 const user_account = 'crimpsonsloper';
-const join_account = 'crimpsonsloper';
+const join_account = 'atrioc';
 const youtubeRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?=]*)?/g;
 
 const bull = (
