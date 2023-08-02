@@ -102,12 +102,12 @@ export default function GetSmarterPage() {
                 messages.forEach(message => {
                     let parsedMessage = parseMessage(message);
                     if (parsedMessage) {
-                        console.log(`Message command: ${parsedMessage.command.command}`);
+                        // console.log(`Message command: ${parsedMessage.command.command}`);
                         // console.log(`\n${JSON.stringify(parsedMessage, null, 3)}`)
 
                         switch (parsedMessage.command.command) {
                             case 'PRIVMSG':
-                                console.log(`Message received: ${parsedMessage.parameters} from ${parsedMessage.source['nick']}`)
+                                // console.log(`Message received: ${parsedMessage.parameters} from ${parsedMessage.source['nick']}`)
                                 const matches = parsedMessage.parameters.match(youtubeRegex);
 
                                 if (matches) {
@@ -127,7 +127,10 @@ export default function GetSmarterPage() {
                                                 })
                                             })
                                                 .then(response => response.json())
-                                                .then(data => setVideos(oldArray => [...oldArray, data['results']]))
+                                                .then(data => {
+                                                    console.log(data)
+                                                    setVideos(oldArray => [...oldArray, data['results']])
+                                                })
                                                 .catch(err => console.error(err));
 
                                         }
@@ -147,6 +150,8 @@ export default function GetSmarterPage() {
     function youtube_parser(url) {
         var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         var match = url.match(regExp);
+
+        console.log(match)
         return (match && match[7].length == 11) ? match[7] : false;
     }
 
