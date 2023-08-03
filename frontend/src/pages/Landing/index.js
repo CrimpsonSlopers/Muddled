@@ -24,7 +24,7 @@ export default function Landing() {
 
     useEffect(() => {
         if (sequence.includes('atrioc')) {
-            window.location.href = '/admin/';
+            window.location.href = '/login';
         }
     }, [sequence]);
 
