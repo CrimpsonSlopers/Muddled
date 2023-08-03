@@ -72,7 +72,8 @@ function YouTubeThumbnail({ video }) {
 }
 
 export default function GetSmarterPage() {
-    const [connected, setConnected] = useState(true);
+    const [connected, setConnected] = useState(false);
+    const [connectionStatus, setConnectionStatus] = useState("Connecting");
     const [client, setClient] = useState(null);
     const [videos, setVideos] = useState([]);
     const [selectedVideo, setSelectedVideo] = useState(null);
@@ -95,8 +96,10 @@ export default function GetSmarterPage() {
             };
 
             client.onmessage = (event) => {
+                setConnected(true);
+                setConnectionStatus("Connected!")
                 let rawIrcMessage = event.data.trimEnd();
-                //console.log(`Message received (${new Date().toISOString()}): '${rawIrcMessage}'\n`);
+                console.log(`Message received (${new Date().toISOString()}): '${rawIrcMessage}'\n`);
 
                 let messages = rawIrcMessage.split('\r\n');
                 messages.forEach(message => {
@@ -225,8 +228,7 @@ export default function GetSmarterPage() {
                     <Card>
                         <CardHeader
                             avatar={connected ? <WifiIcon color="success" /> : <WifiOffIcon />}
-                            title={"connectionStatus"}
-                            subheader={"connectionStatusText"}
+                            title={connectionStatus}
                         />
                     </Card>
                 </Box>

@@ -67,7 +67,6 @@ class ParseIRCMessage(APIView):
         youtube_api_url = f'https://youtube.googleapis.com/youtube/v3/videos'
         response = requests.get(youtube_api_url, params=params)
         data = response.json()
-        print(data)
 
         if data['pageInfo']['totalResults'] == 1:
             data = data['items'][0]
