@@ -60,37 +60,42 @@ class ParseIRCMessage(APIView):
         video_id = request.data.get('video_id')
         submitted_by = request.data.get('submitted_by')
 
-        params = {
-            'part': 'snippet,contentDetails,statistics',
-            'id': video_id,
-            'key': YOUTUBE_API_KEY
-        }
-        youtube_api_url = f'https://youtube.googleapis.com/youtube/v3/videos'
-        response = requests.get(youtube_api_url, params=params)
-        data = response.json()
-
-        if data['pageInfo']['totalResults'] == 1:
-            data = data['items'][0]
-            video_dict = {
-                'video_id': video_id,
-                'title': data['snippet']['title'],
-                'submitted_by': submitted_by,
-                'channel_name': data['snippet']['channelTitle'],
-                'thumbnail_url': data['snippet']['thumbnails']['medium']['url'],
-                'duration': data['contentDetails']['duration'],
-                'view_count': data['statistics']['viewCount'],
-                'like_count': data['statistics']['likeCount'],
-                'published_at': data['snippet']['publishedAt'],
-                'session': 1
+        video = Video.objects.filter(video_id=video_id)
+        print(video)
+        if not video:
+            params = {
+                'part': 'snippet,contentDetails,statistics',
+                'id': video_id,
+                'key': YOUTUBE_API_KEY
             }
-            
-            serializer = VideoSerializer(data=video_dict)
-            if serializer.is_valid():
-                serializer.save()
+            youtube_api_url = f'https://youtube.googleapis.com/youtube/v3/videos'
+            response = requests.get(youtube_api_url, params=params)
+            data = response.json()
 
-                return Response({"results": serializer.data}, status=status.HTTP_200_OK)
+            if data['pageInfo']['totalResults'] == 1:
+                data = data['items'][0]
+                video_dict = {
+                    'video_id': video_id,
+                    'title': data['snippet']['title'],
+                    'submitted_by': submitted_by,
+                    'channel_name': data['snippet']['channelTitle'],
+                    'thumbnail_url': data['snippet']['thumbnails']['medium']['url'],
+                    'duration': data['contentDetails']['duration'],
+                    'view_count': data['statistics']['viewCount'],
+                    'like_count': data['statistics']['likeCount'],
+                    'published_at': data['snippet']['publishedAt'],
+                    'session': 1
+                }
+                
+                serializer = VideoSerializer(data=video_dict)
+                if serializer.is_valid():
+                    serializer.save()
+
+                    return Response({"results": serializer.data, "num_results": 1 }, status=status.HTTP_200_OK)
         
-        return Response({"results": serializer.errors, "num_results": 0}, status=status.HTTP_200_OK)
+            return Response({"results": serializer.errors, "num_results": 0 }, status=status.HTTP_200_OK)
+        
+        return Response({"results": "", "num_results": 0 }, status=status.HTTP_200_OK)
 
 
 class Login(APIView):

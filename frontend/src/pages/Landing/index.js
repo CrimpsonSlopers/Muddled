@@ -23,6 +23,7 @@ export default function Landing() {
     }, []);
 
     useEffect(() => {
+        console.log(sequence)
         if (sequence.includes('atrioc')) {
             window.location.href = '/login';
         }

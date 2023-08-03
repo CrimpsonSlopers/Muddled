@@ -18,9 +18,9 @@ import parseMessage from "../../utils/irc_message_parser";
 import { formatPublishedAt, formatNumber, formatDuration } from 'utils/video_utils';
 import TickerHeader from "../../components/TickerHeader";
 
-const password = "midf6aaz8hgc14usszu0dgmmo2gqdd";
-const user_account = 'crimpsonsloper';
-const join_account = 'atrioc';
+const password = "oauth:midf6aaz8hgc14usszu0dgmmo2gqdd";
+const account = 'muddle';
+const channel = '#crimpsonsloper';
 const youtubeRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?=]*)?/g;
 
 const bull = (
@@ -38,7 +38,7 @@ function YouTubeVideo({ video }) {
         <iframe
             width={'320px'}
             height={'180px'}
-            src={`https://www.youtube.com/embed/${video_id}?start=18&rel=0`}
+            src={`https://www.youtube.com/embed/${video_id}?start=0&rel=0`}
             allow="accelerometer; clipboard-write; encrypted-media; fullscreen"
             frameborder="0"
             allowfullscreen
@@ -71,6 +71,12 @@ function YouTubeThumbnail({ video }) {
 
 }
 
+function youtubeParser(url) {
+    let regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    let match = url.match(regExp);
+    return (match && match[7].length == 11) ? match[7] : [];
+}
+
 export default function GetSmarterPage() {
     const [connected, setConnected] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState("Connecting");
@@ -86,9 +92,8 @@ export default function GetSmarterPage() {
     useEffect(() => {
         if (client) {
             client.onopen = () => {
-                client.send(`PASS oauth:${password}`);
-                client.send(`NICK ${user_account}`);
-                client.send(`JOIN #${join_account}`);
+                client.send(`PASS ${password}`);
+                client.send(`NICK ${account}`);
             };
 
             client.onerror = (error) => {
@@ -97,9 +102,9 @@ export default function GetSmarterPage() {
 
             client.onmessage = (event) => {
                 setConnected(true);
-                setConnectionStatus("Connected!")
                 let rawIrcMessage = event.data.trimEnd();
-                console.log(`Message received (${new Date().toISOString()}): '${rawIrcMessage}'\n`);
+
+                // console.log(`Message received (${new Date().toISOString()}): '${rawIrcMessage}'\n`);
 
                 let messages = rawIrcMessage.split('\r\n');
                 messages.forEach(message => {
@@ -110,53 +115,46 @@ export default function GetSmarterPage() {
 
                         switch (parsedMessage.command.command) {
                             case 'PRIVMSG':
-                                // console.log(`Message received: ${parsedMessage.parameters} from ${parsedMessage.source['nick']}`)
-                                const matches = parsedMessage.parameters.match(youtubeRegex);
+                                console.log(`Message received: ${parsedMessage.parameters} from ${parsedMessage.source['nick']}`)
+                                const videoID = youtubeParser(parsedMessage.parameters);
 
-                                if (matches) {
-                                    matches.forEach(match => {
-                                        let id = youtube_parser(match)
-
-                                        if (id) {
-                                            fetch('/api/parse_irc_message', {
-                                                method: "POST",
-                                                headers: {
-                                                    "X-CSRFToken": Cookies.get('csrftoken'),
-                                                    "Content-Type": "application/json"
-                                                },
-                                                body: JSON.stringify({
-                                                    video_id: id,
-                                                    submitted_by: parsedMessage.source['nick']
-                                                })
-                                            })
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    console.log(data)
-                                                    setVideos(oldArray => [...oldArray, data['results']])
-                                                })
-                                                .catch(err => console.error(err));
-
-                                        }
-
-                                        console.log(id)
+                                if (videoID) {
+                                    console.log(`New video from ${parsedMessage.source['nick']} with ${videoID}`);
+                                    fetch('/api/parse_irc_message', {
+                                        method: "POST",
+                                        headers: {
+                                            "X-CSRFToken": Cookies.get('csrftoken'),
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: JSON.stringify({
+                                            video_id: videoID,
+                                            submitted_by: parsedMessage.source['nick']
+                                        })
                                     })
-
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            console.log(data)
+                                            if (data['num_results'] != 0) {
+                                                setVideos(oldArray => [...oldArray, data['results']])
+                                            }
+                                        })
+                                        .catch(err => console.error(err));
                                 }
-                            
+
+                            case 'PING':
+                                client.send(`PONG ${parsedMessage.parameters}`);
+                                break;
+
+                            case '001':
+                                // Successfully logged in, so join the channel.
+                                client.send(`JOIN ${channel}`);
+
                         }
                     }
                 })
             };
         }
     }, [client]);
-
-    function youtube_parser(url) {
-        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        var match = url.match(regExp);
-
-        console.log(match)
-        return (match && match[7].length == 11) ? match[7] : false;
-    }
 
     const handleSelectVideo = (index) => {
         setSelectedVideo(index);
@@ -228,7 +226,7 @@ export default function GetSmarterPage() {
                     <Card>
                         <CardHeader
                             avatar={connected ? <WifiIcon color="success" /> : <WifiOffIcon />}
-                            title={connectionStatus}
+                            title={connected ? "Connected!" : "connecting"}
                         />
                     </Card>
                 </Box>
