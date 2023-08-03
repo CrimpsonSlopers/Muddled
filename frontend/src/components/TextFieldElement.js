@@ -39,6 +39,7 @@ export function TextFieldElement({
           required={required}
           fullWidth
           error={!!error}
+          type={type}
           helperText={error ? (typeof parseError === 'function' ? parseError(error) : error.message) : rest.helperText}
         />
       )}
