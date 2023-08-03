@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth import authenticate, login
 
 from .models import StreamSession, Video
 from .serializers import *
@@ -90,3 +91,16 @@ class ParseIRCMessage(APIView):
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
         
         return Response({"results": serializer.errors, "num_results": 0}, status=status.HTTP_200_OK)
+
+
+class Login(APIView):
+  def post(self, request, format=None):
+    username = request.data["username"]
+    password = request.data["password"]
+    user = authenticate(username=username, password=password)
+    
+    if user is not None:
+      login(request, user)
+      return Response(status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_401_UNAUTHORIZED)

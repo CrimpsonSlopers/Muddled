@@ -8,5 +8,6 @@ urlpatterns = [
     path("video", VideoView.as_view()),
 
     path("authenticate", AuthenticateUser.as_view()),
+    path('login', Login.as_view()),
     path("parse_irc_message", ParseIRCMessage.as_view())
 ]

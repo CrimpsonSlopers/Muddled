@@ -7,6 +7,7 @@ import GetSmarterPage from "pages/GetSmarter";
 import { AuthProvider, ProtectedRoute } from "utils/auth";
 import { theme } from "./theme";
 import Landing from "./pages/Landing";
+import Login from "pages/Login";
 
 
 const NoMatch = () => {
@@ -26,6 +27,7 @@ export default function App() {
                 <CssBaseline />
                 <Routes>
                     <Route path="" element={<Landing />} />
+                    <Route path="login" element={<Login />} />
                     <Route path="get-smarter" element={<ProtectedRoute><GetSmarterPage /></ProtectedRoute>} />
                     <Route path="*" element={<NoMatch />} />
                 </Routes>
