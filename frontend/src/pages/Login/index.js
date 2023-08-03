@@ -24,9 +24,7 @@ export default function Login() {
     const { handleSubmit, control } = useForm({ defaultValues });
 
     const onSubmitLogin = (data) => {
-        console.log(data)
         auth.login(data).then((response) => {
-            console.log(response)
             if (response == 200) {
                 navigate('/');
             }
