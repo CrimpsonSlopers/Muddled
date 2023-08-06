@@ -8,6 +8,7 @@ import { AuthProvider, ProtectedRoute } from "utils/auth";
 import { theme } from "./theme";
 import Landing from "./pages/Landing";
 import Login from "pages/Login";
+import NoStupidQuestions from "pages/NoStupidQuestions"
 
 
 const NoMatch = () => {
@@ -29,6 +30,7 @@ export default function App() {
                     <Route path="" element={<Landing />} />
                     <Route path="login" element={<Login />} />
                     <Route path="get-smarter" element={<ProtectedRoute><GetSmarterPage /></ProtectedRoute>} />
+                    <Route path="no-stupid-questions" element={<ProtectedRoute><NoStupidQuestions /></ProtectedRoute>} />
                     <Route path="*" element={<NoMatch />} />
                 </Routes>
             </ThemeProvider>
