@@ -18,7 +18,7 @@ import parseMessage from "../../utils/irc_message_parser";
 
 const password = "oauth:midf6aaz8hgc14usszu0dgmmo2gqdd";
 const account = 'muddle';
-const channel = '#crimpsonsloper';
+const channel = '#atrioc';
 
 function getDayOfWeek(date) {
     const dayOfWeek = new Date(date).getDay();
