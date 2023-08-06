@@ -20,7 +20,7 @@ import TickerHeader from "../../components/TickerHeader";
 
 const password = "oauth:midf6aaz8hgc14usszu0dgmmo2gqdd";
 const account = 'muddle';
-const channel = '#crimpsonsloper';
+const channel = '#atrioc';
 
 const bull = (
     <Box
@@ -191,10 +191,10 @@ export default function GetSmarterPage() {
         <Box sx={{ display: 'flex' }}>
             <Drawer
                 sx={{
-                    width: '300px',
+                    width: '240px',
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
-                        width: '300px',
+                        width: '240px',
                         boxSizing: 'border-box',
                         border: "none",
                         backgroundColor: "transparent"
@@ -212,13 +212,13 @@ export default function GetSmarterPage() {
                     pb={1}
                 >
                     <Typography
-                        variant="h3"
+                        variant="h2"
                         fontWeight="bold"
                         textTransform="uppercase"
                         color="#7222C2"
                         letterSpacing="2px"
                     >
-                        Muddled
+                        ATRIOC
                     </Typography>
                 </Box>
                 <Box mt="auto" p={1}>
