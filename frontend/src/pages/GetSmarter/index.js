@@ -20,8 +20,7 @@ import TickerHeader from "../../components/TickerHeader";
 
 const password = "oauth:midf6aaz8hgc14usszu0dgmmo2gqdd";
 const account = 'muddle';
-const channel = '#atrioc';
-const youtubeRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?=]*)?/g;
+const channel = '#crimpsonsloper';
 
 const bull = (
     <Box
@@ -245,6 +244,21 @@ export default function GetSmarterPage() {
                     {renderVideos}
                 </Grid>
             </Box>
+            <Drawer
+                sx={{
+                    width: '25vw',
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: '25vw',
+                        boxSizing: 'border-box',
+                        border: "none",
+                        backgroundColor: "transparent"
+                    },
+                }}
+                variant="permanent"
+                anchor="right"
+            >
+            </Drawer>
         </Box>
     )
 }

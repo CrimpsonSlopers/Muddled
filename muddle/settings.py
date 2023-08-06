@@ -23,7 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-abaabllth4ipn#eyi*6w9ra3!sjo)=6+yde^i_d-)9y5wx#sr3" # os.environ["DJANGO_SECRET_KEY"]
 
+
+TWITCH_CLIENT_ID="bs99mqyazrfa7tut83c2wa108xasmz"
+TWITCH_CLIENT_SECRET="ca7rbwupbpagksdcauq47trwic543j"
+TWITCH_REDIRECT_URI = 'http://localhost:8000'
+
 YOUTUBE_API_KEY = "AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg"
+
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = True
 
@@ -38,9 +44,11 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+
     "api.apps.ApiConfig",
     "frontend.apps.FrontendConfig",
     "rest_framework",
+    
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -71,11 +79,13 @@ TEMPLATES = [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+                "django.contrib.messages.context_processors.messages"
             ],
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = "muddle.wsgi.application"
 
@@ -133,3 +143,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+

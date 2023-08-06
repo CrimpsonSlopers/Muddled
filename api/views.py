@@ -48,6 +48,7 @@ class StreamSessionView(APIView):
 
 class AuthenticateUser(APIView):
     def get(self, request, format=None):
+        print(request.user)
         if (request.user.is_staff):
             return Response(status=status.HTTP_200_OK)
 
