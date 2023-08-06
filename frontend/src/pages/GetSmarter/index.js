@@ -191,10 +191,10 @@ export default function GetSmarterPage() {
         <Box sx={{ display: 'flex' }}>
             <Drawer
                 sx={{
-                    width: '240px',
+                    width: '280px',
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
-                        width: '240px',
+                        width: '280px',
                         boxSizing: 'border-box',
                         border: "none",
                         backgroundColor: "transparent"
