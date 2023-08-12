@@ -1,7 +1,6 @@
 from django.db import models
 from datetime import datetime
 
-
 class StreamSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -31,3 +30,5 @@ class Video(models.Model):
 
     def __str__(self):
         return f"Video - {self.title} (Added by: {self.submitted_by})"
+
+

@@ -1,5 +1,4 @@
 export function formatNumber(number) {
-    return number
     // 10,000,000+
     if (Math.abs(number) >= 10000000) {
         return (number / 1000000).toFixed(0) + 'M';

@@ -1,56 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import { Button } from '@mui/material';
 
+const client_id = 'bs99mqyazrfa7tut83c2wa108xasmz';
 
 export default function Landing() {
-    const [sequence, setSequence] = useState('');
-
-    const checkLoginSequence = (event) => {
-        const key = event.key.toLowerCase();
-        setSequence((prevSequence) => prevSequence + key);
-    };
 
     useEffect(() => {
-        document.addEventListener('keydown', checkLoginSequence);
-
-        return () => {
-            document.removeEventListener('keydown', checkLoginSequence);
+        const getQueryParam = (param) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
         };
+
+        const accessToken = getQueryParam('access_token');
+        const refreshToken = getQueryParam('refresh_token');
+
+        if (accessToken && refreshToken) {
+            localStorage.setItem('access_token', accessToken);
+            localStorage.setItem('refresh_token', refreshToken);
+
+            window.history.replaceState({}, document.title, '/');
+        }
     }, []);
 
-    useEffect(() => {
-        console.log(sequence)
-        if (sequence.includes('atrioc')) {
-            window.location.href = '/login';
-        }
-    }, [sequence]);
+    const convertToken = () => {
+        fetch('/auth/convert-token/', {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": Cookies.get('csrftoken'),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                token: accessToken,
+                refresh_token: refreshToken,
+                backend: 'twitch',
+                grant_type: 'convert_token',
+                client_id: 'L9ocwmSbNuW0fSgc4IduFrSqRL2EoHYvOyZ2rV8V',
+                client_secret: 'zXLY0HgYOOyeVewko0RRIlQQ3wUR1rkfoeNs4esVboSrrsWycrruXZwCmi0kMC2Vx8kUKo5elJ1vWxupGYy9jrIMf4exrvQAiF5OQbfQB487OCcSMhl2T9BVBwrxTc1B'
+            })
+        })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    throw new Error(`Unexpected response status: ${response.status}`);
+                }
+            })
+            .then(data => console.log(data))
+            .catch(err => console.error(err));
+    }
 
     return (
         <div>
-            {/* Transparent Toolbar */}
             <AppBar sx={{ background: 'transparent', boxShadow: 'none' }}>
                 <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant='h4' component='div' sx={{ flexGrow: 1 }}>
                         Muddled
                     </Typography>
-                    <Typography variant="h6" component="div" sx={{ marginRight: '20px' }}>
-                        <a href="https://www.twitch.tv/atrioc" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none' }}>Twitch</a>
+                    <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
+                        <a href='/get-smarter' style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}>Get Smarter</a>
                     </Typography>
-                    <Typography variant="h6" component="div" sx={{ marginRight: '20px' }}>
-                        <a href="https://www.youtube.com/@atrioc" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none' }}>YouTube</a>
-                    </Typography>
-                    <Typography variant="h6" component="div" sx={{ marginRight: '20px' }}>
-                        <a href="https://twitter.com/atrioc" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none' }}>Twitter</a>
-                    </Typography>
-                    <Typography variant="h6" component="div" sx={{ marginRight: '20px' }}>
-                        <a href="https://discord.com/invite/Dar3UDx" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none' }}>Discord</a>
-                    </Typography>
-                    <Typography variant="h6" component="div">
-                        <a href="https://reddit.com/r/Atrioc/" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none' }}>Reddit</a>
+                    <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
+                        <a
+                            href={`https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${client_id}&redirect_uri=http://localhost:8000/api/get-access-token&scope=user:read:email&state=${Cookies.get('csrftoken')}`}
+                            style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}
+                        >
+                            Sign In
+                        </a>
                     </Typography>
                 </Toolbar>
             </AppBar>
@@ -58,19 +80,24 @@ export default function Landing() {
                 background: 'radial-gradient(ellipse at 15% 20%, #7222C2 0%, #2D0841 100%);',
                 width: '100vw',
                 height: '100vh',
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "column",
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column',
             }}>
-                <Typography sx={{ letterSpacing: '2px', color: "white" , fontWeight: '200'}}>
-                    welcome to
-                </Typography>
-                <Typography sx={{ fontSize: '6.0vw !important', lineHeight: "1", color: "white", textShadow: '0 0 10px rgba(0, 0, 0, 0.5)', fontWeight: '900'}}>
+                <Typography sx={{
+                    fontSize: '6.0vw !important',
+                    lineHeight: '1',
+                    color: 'white',
+                    fontWeight: '900'
+                }}>
                     MUDDLED
                 </Typography>
-                <Typography sx={{ letterSpacing: '3px', color: "white" }}>
-                    a site designed for ATRIOC
+                <Typography sx={{
+                    letterSpacing: '3px',
+                    color: 'white'
+                }}>
+                    a site for ATRIOC
                 </Typography>
             </Box>
         </div>

@@ -10,37 +10,14 @@ function useAuth() {
     const [authed, setAuthed] = useState();
 
     React.useEffect(() => {
-        fetch('/api/authenticate')
-            .then((response) => {
-                if (response.ok) {
-                    console.log("authenticated")
-                    setAuthed(true);
-                } else {
-                    setAuthed(false);
-                }
-            })
+        setAuthed(true);
     }, [])
 
     return {
         authed,
         login(data) {
-            console.log(data)
-            const requestOptions = {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': Cookies.get('csrftoken'),
-                },
-                body: JSON.stringify(data)
-            };
-            const result = fetch('/api/login', requestOptions)
-                .then((response) => {
-                    if (response.ok) {
-                        setAuthed(true);
-                    }
-                    return response.status
-                })
-            return result;
+            setAuthed(true);
+            return 200;
         }
     }
 
@@ -48,8 +25,6 @@ function useAuth() {
 
 export function ProtectedRoute({ children }) {
     const { authed } = AuthConsumer();
-
-    console.log("AUTHED", authed)
 
     if (typeof authed !== "undefined") {
         if (authed) {
