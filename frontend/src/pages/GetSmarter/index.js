@@ -3,106 +3,41 @@ import Cookies from 'js-cookie';
 
 import Box from '@mui/material/Box';
 import Button from "@mui/material/Button";
-import Card from '@mui/material/Card';
-import CardActions from "@mui/material/CardActions";
-import CardContent from '@mui/material/CardContent';
-import CardHeader from '@mui/material/CardHeader';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import BulletPoint from "components/BulletPoint";
 
-import WifiOffIcon from '@mui/icons-material/WifiOff';
-import WifiIcon from '@mui/icons-material/Wifi';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import TickerHeader from "components/TickerHeader";
+import ClientStatusCard from "./components/ClientStatusCard";
+import VideoGrid from "./components/VideoGrid";
+import NavItems from "./components/NavItems";
 
 import parseMessage from "utils/irc_message_parser";
-import {
-    formatPublishedAt,
-    formatNumber,
-    formatDuration
-} from 'utils/video_utils';
-import TickerHeader from "components/TickerHeader";
 
-const password = "oauth:midf6aaz8hgc14usszu0dgmmo2gqdd";
-const account = 'muddle';
-const channel = '#crimpsonsloper';
+const CLIENT_ID = "midf6aaz8hgc14usszu0dgmmo2gqdd";
+const MUDDLED_ACCOUNT = 'Muddled';
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-
-
-function ConnectionStatusCard({ connectionStatus, onConnectButtonClicked }) {
-    let connected = (connectionStatus == 2);
-    let subheader;
-    let title;
-    let buttonText;
-
-    switch (connectionStatus) {
-
-        case 1:
-            title = "Connected";
-            subheader = `Ready to join`;
-            buttonText = 'join channel';
-            break;
-
-        case 2:
-            title = "Connected, Watching";
-            subheader = `Joined channel`;
-            buttonText = 'leave channel';
-            break;
-
-        case 3:
-            title = "Connected";
-            subheader = `Start new session`;
-            buttonText = 'New Session';
-            break;
-
-        default:
-            title = "Connecting";
-            subheader = "Not Secure";
-            buttonText = 'hold up';
-
-    }
-
-    return (
-        <Card>
-            <CardHeader
-                avatar={connected ? <WifiIcon color="success" /> : <WifiOffIcon />}
-                title={title}
-                subheader={subheader}
-            />
-            <CardActions>
-                <Button ml="auto" onClick={(event) => onConnectButtonClicked(event)} disabled={connectionStatus < 1}>{buttonText}</Button>
-            </CardActions>
-        </Card>
-    )
-}
 
 
 export default function GetSmarterPage() {
     const [client, setClient] = useState(null);
-    const [connectionStatus, setConnectionStatus] = useState(0);
-
-    const [videos, setVideos] = useState([]);
-    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [connected, setConnected] = useState(false);
     const [sessions, setSessions] = useState([]);
-    const [activeSession, setActiveSession] = useState(null);
+    const [videos, setVideos] = useState([]);
+    const [session, setSession] = useState(0);
+    const [channel, setChannel] = useState('crimpsonsloper');
 
     useEffect(() => {
-        let ws = new WebSocket('ws://irc-ws.chat.twitch.tv:80');
-        setClient(ws);
-        fetchSessions();
+        setClient(new WebSocket('ws://irc-ws.chat.twitch.tv:80'));
+        getSessions();
     }, [])
 
     useEffect(() => {
         if (client) {
             client.onopen = () => {
-                client.send(`PASS ${password}`);
-                client.send(`NICK ${account}`);
+                client.send(`PASS oauth:${CLIENT_ID}`);
+                client.send(`NICK ${MUDDLED_ACCOUNT}`);
             };
 
             client.onerror = (error) => {
@@ -123,29 +58,28 @@ export default function GetSmarterPage() {
                         switch (parsedMessage.command.command) {
                             case 'PRIVMSG':
                                 const match = parsedMessage.parameters.match(youtubeRegex);
-                                const newVidID = (match && match[7].length == 11) ? match[7] : [];
+                                const id = (match && match[7].length == 11) ? match[7] : [];
 
-                                if (newVidID) addVideo(newVidID, rawIrcMessage, parsedMessage.source['nick']);
+                                if (id.length > 0) {
+                                    addVideo(id, parsedMessage.source['nick']);
+                                }
                                 break
 
                             case 'JOIN':
-                                console.log(`Joining ${channel}'s channel.`);
-                                setConnectionStatus(2);
+                                console.log(`Joining ${channel}'s channel`);
                                 break;
 
                             case 'PART':
-                                console.log(`Leaving ${channel}'s channel.`);
-                                setConnectionStatus(1);
+                                console.log(`Leaving ${channel}'s channel`);
                                 break;
 
                             case 'PING':
-                                console.log("Client checking if bot is still alive.");
+                                console.log("Responding to client with: PONG ", parsedMessage.parameters);
                                 client.send(`PONG ${parsedMessage.parameters}`);
                                 break;
 
                             case '001':
-                                console.log("Connected and ready to join channel.");
-                                setConnectionStatus(1);
+                                console.log("Connected and ready to join channel");
                                 break
 
                         }
@@ -155,230 +89,112 @@ export default function GetSmarterPage() {
         }
     }, [client]);
 
-    const fetchSessions = () => {
-        fetch('/api/stream-session', {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else {
-                    throw new Error(`Unexpected response status: ${response.status}`);
-                }
-            })
-            .then(data => setSessions(data['results']))
-            .catch(err => console.error(err));
-    }
+    const addVideo = async (id, login) => {
+        try {
+            const response = await fetch('/api/video-submitted', {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": Cookies.get('csrftoken'),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    session_id: session,
+                    video_id: id,
+                    login: login
+                })
+            });
 
-    const addVideo = (videoID, rawIrcMessage, submittedBy) => {
-        fetch('/api/video-submitted', {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": Cookies.get('csrftoken'),
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                session_id: activeSession,
-                video_id: videoID,
-                raw_message: rawIrcMessage,
-                submitted_by: submittedBy
-            })
-        })
-            .then(response => {
-                if (response.status === 201) {
-                    return response.json();
-                } else {
-                    throw new Error(`Unexpected response status: ${response.status}`);
+            if (response.status === 200) {
+                const data = await response.json();
+                setVideos(oldArray => [...oldArray, data.results]);
+                if (data.results.session != session) {
+                    setSession(data.results.session)
                 }
-            })
-            .then(data => {
-                setVideos(oldArray => [...oldArray, data['results']])
-            })
-            .catch(err => console.error(err));
-    }
+            } else {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-    const handleConnectButtonClicked = () => {
-        if (connectionStatus == 2) {
-            client.send(`PART ${channel}`);
+    const getVideos = async (session) => {
+        try {
+            const response = await fetch(`/api/session/${session}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                setVideos(data.results.videos);
+            } else {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const getSavedVideos = async () => {
+        try {
+            const response = await fetch(`/api/saved-videos`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                setVideos(data);
+            } else {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const getSessions = async () => {
+        try {
+            const response = await fetch(`/api/session`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                setSessions(data.results);
+            } else {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleConnect = () => {
+        if (connected) {
+            client.send(`PART #${channel}`);
+            setConnected(false)
         } else {
-            client.send(`JOIN ${channel}`);
+            client.send(`JOIN #${channel}`);
+            setConnected(true)
         }
     }
 
-    function YouTubeVideo({ video }) {
-        return (
-            <iframe
-                width={'320px'}
-                height={'180px'}
-                src={`https://www.youtube.com/embed/${video.video_id}?start=1&rel=0`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                frameborder="0"
-                allowfullscreen
-            ></iframe>
-        )
-
+    const handleNavClick = (session) => {
+        setSession(session.id)
+        setVideos(session.videos);
     }
 
-    function YouTubeThumbnail({ video }) {
-        const { thumbnail_url, duration } = video;
-        return (
-            <>
-                <Box
-                    component="img"
-                    src={thumbnail_url}
-                    sx={{ cursor: "pointer", height: "180", width: "320", borderRadius: '8px' }}
-                />
-                <Chip
-                    sx={{ position: "absolute", bottom: "12px", right: "8px", backgroundColor: "black", color: "white" }}
-                    size="small"
-                    label={formatDuration(duration)}
-                />
-            </>
-        )
-
-    }
-
-    const handleClickSaveVideo = (video) => {
-        let newVid = video;
-        newVid.watch_later = !newVid.watch_later;
-
-        fetch(`/api/video/${video.id}`, {
-            method: "PUT",
-            headers: {
-                "X-CSRFToken": Cookies.get('csrftoken'),
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(video)
-        })
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else {
-                    throw new Error(`Unexpected response status: ${response.status}`);
-                }
-            })
-            .then(data => {
-                const updatedVideos = videos.map(vid => {
-                    if (vid.id === data.id) {
-                        return data;
-                    }
-                    return vid;
-                });
-                setVideos(updatedVideos);
-            })
-            .catch(err => console.error(err));
-    }
-
-    const renderVideos = videos.map((video, index) => {
-        let returnValue;
-        let active = (selectedVideo === index);
-
-        returnValue = (
-            <Grid item key={index} xs="auto">
-                <Box display={"flex"} flexDirection={"column"} width={"320px"}>
-                    <Box position="relative" onClick={() => setSelectedVideo(index)}>
-                        {active
-                            ? <YouTubeVideo video={video} />
-                            : <YouTubeThumbnail video={video} />
-                        }
-                    </Box>
-                    <CardContent sx={{ padding: '.25rem', color: 'rgba(0,0,0,0.7)' }}>
-                        <Typography variant="body1" gutterBottom sx={{ color: "black" }}>{video.title}</Typography>
-                        <Typography variant="subtitle2">{video.channel_name}</Typography>
-                        <Typography variant="overline">
-                            {formatNumber(video.view_count)} views {<BulletPoint />} {formatNumber(video.like_count)} likes {<BulletPoint />} {formatPublishedAt(video.published_at)} ago
-                        </Typography>
-                        <Chip size="small" label={`submitted by: ${video.submitted_by}`} />
-                    </CardContent>
-                    <CardActions >
-                        {video.watch_later
-                            ? <FavoriteIcon onClick={() => handleClickSaveVideo(video)} />
-                            : <FavoriteBorderIcon onClick={() => handleClickSaveVideo(video)} />
-                        }
-                    </CardActions>
-                </Box>
-            </Grid>
-        )
-
-        return returnValue;
-    })
-
-    const onChangeActiveSession = (session) => {
-        fetch(`/api/stream-session/${session.id}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else {
-                    throw new Error(`Unexpected response: ${response.status}`);
-                }
-            })
-            .then(data => {
-                setActiveSession(data['results']['id'])
-                setVideos(data['results']['videos'])
-            })
-            .catch(err => console.error(err));
-    }
-
-    const renderSessions = sessions.map(session => {
-        let returnValue;
-        let active = (session.id == activeSession);
-
-        returnValue = (
-            <ListItem key={session.id} component="li" sx={{ padding: "0" }} onClick={() => onChangeActiveSession(session)}>
-                <Box
-                    sx={{
-                        background: active ? "white" : "transparent",
-                        color: active ? "#7222C2" : "rgba(0, 0, 0, 0.6)",
-                        display: "flex",
-                        alignItems: "center",
-                        width: '100%',
-                        padding: '8px 16px',
-                        margin: '2px 12px',
-                        borderRadius: '4px',
-                        cursor: "pointer",
-                        userSelect: "none",
-                        whiteSpace: "nowrap",
-                        boxShadow: active ? 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;' : "none",
-                        transition: 'all 0.35s ease-in-out',
-                        "&:hover, &:focus": {
-                            backgroundColor: active ? null : "white",
-                            boxShadow: 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;',
-                        },
-                    }}
-                >
-                    <ListItemText
-                        primary={session.created_at}
-                        sx={{
-                            "& span": {
-                                fontWeight: active ? 500 : 300,
-                            },
-                        }}
-                    />
-                </Box>
-            </ListItem>
-        )
-        return returnValue
-    })
-
-    const handleClickSavedVideos = () => {
-        setConnectionStatus(3);
-        fetch('/api/saved-videos', {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else {
-                    throw new Error(`Unexpected response status: ${response.status}`);
-                }
-            })
-            .then(data => setVideos(data))
-            .catch(err => console.error(err));
+    const handleUpdateVideo = (videos) => {
+        setVideos(videos)
     }
 
     return (
@@ -404,12 +220,17 @@ export default function GetSmarterPage() {
                 </Box >
                 <Box overflow={"auto"}>
                     <List>
-                        {renderSessions}
+                        <NavItems sessions={sessions} session={session} onNavClick={handleNavClick} />
                     </List>
                 </Box>
                 <Box p={3} mt="auto">
-                    <Button variant="outlined" fullWidth onClick={handleClickSavedVideos}>Saved Videos</Button>
-                    <ConnectionStatusCard connectionStatus={connectionStatus} onConnectButtonClicked={handleConnectButtonClicked} />
+                    <Button variant="outlined" fullWidth onClick={getSavedVideos}>Saved Videos</Button>
+                    <ClientStatusCard
+                        connected={connected}
+                        handleConnect={handleConnect}
+                        channel={channel}
+                        updateChannel={value => setChannel(value)}
+                    />
                 </Box>
             </Drawer >
             <Box component="main" sx={{ flexGrow: 1, padding: 3, overflow: "auto", height: "100vh" }}>
@@ -417,15 +238,15 @@ export default function GetSmarterPage() {
                     <Grid container direction="row" justifyContent="center" alignItems="flex-start" py={3} >
                         <TickerHeader />
                     </Grid>
-                    {renderVideos}
+                    <VideoGrid session={session} videos={videos} onUpdateVideo={handleUpdateVideo}/>
                 </Grid>
             </Box>
             <Drawer
                 sx={{
-                    width: '25vw',
+                    width: '20vw',
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
-                        width: '25vw',
+                        width: '20vw',
                         boxSizing: 'border-box',
                         border: "none",
                         backgroundColor: "transparent"

@@ -1,8 +1,14 @@
 from rest_framework import serializers
 
-from .models import StreamSession, Video
+from .models import StreamSession, Video, Viewer
+
+class ViewerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Viewer
+        fields = '__all__'
 
 class VideoSerializer(serializers.ModelSerializer):
+    viewer = ViewerSerializer()  # Include the ViewerSerializer for the viewer field
 
     class Meta:
         model = Video
@@ -14,6 +20,13 @@ class StreamSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StreamSession
+        fields = '__all__'
+
+
+class CREATEVideoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Video
         fields = '__all__'
 
 
