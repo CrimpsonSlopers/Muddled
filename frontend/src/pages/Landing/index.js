@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
 import AppBar from '@mui/material/AppBar';
@@ -73,7 +72,6 @@ export default function Landing() {
                             Sign In
                         </a>
                     </Typography>
-                    <a href={"http://localhost:8000/auth/login/twitch/"}>Login with Facebook</a>
                 </Toolbar>
             </AppBar>
             <Box sx={{
