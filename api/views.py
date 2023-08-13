@@ -1,4 +1,6 @@
 import requests
+import json
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -6,10 +8,14 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.contrib.auth import login
+from social_django.utils import psa
+from social_core.backends.oauth import BaseOAuth1, BaseOAuth2
+from django.http import HttpResponse, HttpResponseBadRequest
+
 from api.models import StreamSession, Video
 from api.serializers import *
 from muddle.settings import *
-
 
 class VideoView(APIView):
 
@@ -167,31 +173,23 @@ class GetAccessToken(APIView):
 
 class Authenticate(APIView):
     def get(self, request, format=None):
-        print(self.request.user)
         return Response({"results": 'serializer' }, status=status.HTTP_200_OK)
     
 
 
-from django.contrib.auth import login
-
-from social_django.utils import psa
-
-# Define an URL entry to point to this view, call it passing the
-# access_token parameter like ?access_token=<token>. The URL entry must
-# contain the backend, like this:
-#
-#   url(r'^register-by-token/(?P<backend>[^/]+)/$',
-#       'register_by_access_token')
-
-def register_by_access_token(request, backend):
-    # This view expects an access_token GET parameter, if it's needed,
-    # request.backend and request.strategy will be loaded with the current
-    # backend and strategy.
-    token = request.GET.get('access_token')
-    print(token)
-    user = request.backend.do_auth(token)
-    if user:
-        login(request, user)
-        return Response({"results": 'data'}, status=status.HTTP_201_CREATED)
+@psa("social:complete")
+def ajax_auth(request, backend):
+    """AJAX authentication endpoint"""
+    if isinstance(request.backend, BaseOAuth1):
+        token = {
+            "oauth_token": request.REQUEST.get("access_token"),
+            "oauth_token_secret": request.REQUEST.get("access_token_secret"),
+        }
+    elif isinstance(request.backend, BaseOAuth2):
+        token = request.REQUEST.get("access_token")
     else:
-        return Response({"error": "Video already exists in current session"}, status=status.HTTP_400_BAD_REQUEST)
+        raise HttpResponseBadRequest("Wrong backend type")
+    user = request.backend.do_auth(token, ajax=True)
+    login(request, user)
+    data = {"id": user.id, "username": user.username}
+    return HttpResponse(json.dumps(data), mimetype="application/json")

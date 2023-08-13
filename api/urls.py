@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from .views import *
 
 urlpatterns = [
@@ -11,6 +11,5 @@ urlpatterns = [
     path('video-submitted', VideoSubmitted.as_view()),
     
     path('get-access-token', GetAccessToken.as_view()),
-    path('authenticate', Authenticate.as_view()),
-    path('register_by_access_token/<str:backend>/$', register_by_access_token)
+    path('authenticate', Authenticate.as_view())
 ]

@@ -6,7 +6,6 @@ import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { Button } from '@mui/material';
 
 const client_id = 'bs99mqyazrfa7tut83c2wa108xasmz';
 
@@ -74,6 +73,7 @@ export default function Landing() {
                             Sign In
                         </a>
                     </Typography>
+                    <a href={"http://localhost:8000/auth/login/twitch/"}>Login with Facebook</a>
                 </Toolbar>
             </AppBar>
             <Box sx={{

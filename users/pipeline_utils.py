@@ -1,6 +1,7 @@
 from users.models import TwitchUser
     
 def save_meta_data(backend, user, response, *args, **kwargs):    
+    print(backend)
     user.twitch_id = response['id']
     user.display_name = response['display_name']
     user.type = response['type']

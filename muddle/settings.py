@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'oauth2_provider.middleware.OAuth2TokenMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -145,7 +145,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-APPEND_SLASH = False
 
 STATIC_URL = 'static/'
 
@@ -191,10 +190,6 @@ SOCIAL_AUTH_PIPELINE = (
 
 YOUTUBE_API_KEY = 'AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg'
 
-
-LOGIN_REDIRECT_URL = '/api/login-redirect-url'
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/api/social-auth-login-redirect-url'
-
 """
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/api/social-auth-login-error-url'
 SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/api/social-auth-new-user-redirect-url'
@@ -202,7 +197,6 @@ SOCIAL_AUTH_INACTIVE_USER_URL = '/api/social-auth-inactive-user-url'
 SOCIAL_AUTH_DISCONNECT_REDIRECT_URL = '/api/social-auth-disconnect-redirect-url'
 SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/api/social-auth-new-association-redirect-url'
 """
-
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -229,6 +223,7 @@ YOUTUBE_API_KEY = 'AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg'
 # Twitch configuration
 SOCIAL_AUTH_TWITCH_KEY = 'bs99mqyazrfa7tut83c2wa108xasmz'
 SOCIAL_AUTH_TWITCH_SECRET = 'bvwn6hdxaq7d9f3e590awx2z58pmon'
-SOCIAL_AUTH_TWITCH_REDIRECT_URI = '/auth/complete/twitch'
 SOCIAL_AUTH_TWITCH_SCOPE = 'user:read:email'
 SOCIAL_AUTH_TWITCH_PROFILE_EXTRA_PARAMS = { 'fields': 'id, login, display_name' }
+
+APPEND_SLASH = True

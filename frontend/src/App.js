@@ -24,9 +24,7 @@ export default function App() {
     const fetchUserData = () => {
         fetch('/api/authenticate', {
             method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
         })
             .then(response => {
                 if (response.status === 200) {
