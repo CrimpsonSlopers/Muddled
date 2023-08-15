@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import Cookies from 'js-cookie';
 
 import Box from '@mui/material/Box';
-import Button from "@mui/material/Button";
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 
 import TickerHeader from "components/TickerHeader";
 import ClientStatusCard from "./components/ClientStatusCard";
@@ -48,46 +50,55 @@ export default function GetSmarterPage() {
                 console.log("The connection has been closed successfully.");
             };
 
-            client.onmessage = (event) => {
-                let rawIrcMessage = event.data.trimEnd();
-                let messages = rawIrcMessage.split('\r\n');
-
-                messages.forEach(message => {
-                    let parsedMessage = parseMessage(message);
-                    if (parsedMessage) {
-                        switch (parsedMessage.command.command) {
-                            case 'PRIVMSG':
-                                const match = parsedMessage.parameters.match(youtubeRegex);
-                                const id = (match && match[7].length == 11) ? match[7] : [];
-
-                                if (id.length > 0) {
-                                    addVideo(id, parsedMessage.source['nick']);
-                                }
-                                break
-
-                            case 'JOIN':
-                                console.log(`Joining ${channel}'s channel`);
-                                break;
-
-                            case 'PART':
-                                console.log(`Leaving ${channel}'s channel`);
-                                break;
-
-                            case 'PING':
-                                console.log("Responding to client with: PONG ", parsedMessage.parameters);
-                                client.send(`PONG ${parsedMessage.parameters}`);
-                                break;
-
-                            case '001':
-                                console.log("Connected and ready to join channel");
-                                break
-
-                        }
-                    }
-                })
-            };
+            client.onmessage = (event) => handleMessage(event.data)
         }
     }, [client]);
+
+    useEffect(() => {
+        if (client) {
+            client.onmessage = (event) => handleMessage(event.data)
+        }
+    }, [session])
+
+    const handleMessage = (data) => {
+        let rawIrcMessage = data.trimEnd();
+        let messages = rawIrcMessage.split('\r\n');
+
+        messages.forEach(message => {
+            let parsedMessage = parseMessage(message);
+            if (parsedMessage) {
+                switch (parsedMessage.command.command) {
+                    case 'PRIVMSG':
+                        const match = parsedMessage.parameters.match(youtubeRegex);
+                        const id = (match && match[7].length == 11) ? match[7] : [];
+                        console.log(id)
+
+                        if (id.length > 0) {
+                            addVideo(id, parsedMessage.source['nick']);
+                        }
+                        break
+
+                    case 'JOIN':
+                        console.log(`Joining ${channel}'s channel`);
+                        break;
+
+                    case 'PART':
+                        console.log(`Leaving ${channel}'s channel`);
+                        break;
+
+                    case 'PING':
+                        console.log("Responding to client with: PONG ", parsedMessage.parameters);
+                        client.send(`PONG ${parsedMessage.parameters}`);
+                        break;
+
+                    case '001':
+                        console.log("Connected and ready to join channel");
+                        break
+
+                }
+            }
+        })
+    }
 
     const addVideo = async (id, login) => {
         try {
@@ -107,29 +118,6 @@ export default function GetSmarterPage() {
             if (response.status === 200) {
                 const data = await response.json();
                 setVideos(oldArray => [...oldArray, data.results]);
-                if (data.results.session != session) {
-                    setSession(data.results.session)
-                }
-            } else {
-                throw new Error(`Unexpected response status: ${response.status}`);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const getVideos = async (session) => {
-        try {
-            const response = await fetch(`/api/session/${session}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-            });
-
-            if (response.status === 200) {
-                const data = await response.json();
-                setVideos(data.results.videos);
             } else {
                 throw new Error(`Unexpected response status: ${response.status}`);
             }
@@ -178,13 +166,40 @@ export default function GetSmarterPage() {
         }
     };
 
+    const newSession = async () => {
+        try {
+            const response = await fetch(`/api/session`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": Cookies.get('csrftoken'),
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                client.send(`JOIN #${channel}`);
+                setSession(data.results.id);
+                setConnected(true)
+            } else {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     const handleConnect = () => {
         if (connected) {
             client.send(`PART #${channel}`);
             setConnected(false)
         } else {
-            client.send(`JOIN #${channel}`);
-            setConnected(true)
+            if (session == 0) {
+                newSession();
+            } else {
+                client.send(`JOIN #${channel}`);
+                setConnected(true)
+            }
         }
     }
 
@@ -220,11 +235,43 @@ export default function GetSmarterPage() {
                 </Box >
                 <Box overflow={"auto"}>
                     <List>
+                        <ListItem key={-1} component="li" sx={{ padding: "0" }} onClick={getSavedVideos}>
+                            <Box
+                                sx={{
+                                    background: session==-1 ? "white" : "transparent",
+                                    color: session==-1 ? "#7222C2" : "rgba(0, 0, 0, 0.6)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: '100%',
+                                    padding: '8px 16px',
+                                    margin: '2px 12px',
+                                    borderRadius: '4px',
+                                    cursor: "pointer",
+                                    userSelect: "none",
+                                    whiteSpace: "nowrap",
+                                    boxShadow: session==-1 ? 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;' : "none",
+                                    transition: 'all 0.35s ease-in-out',
+                                    "&:hover, &:focus": {
+                                        backgroundColor: session==-1 ? null : "white",
+                                        boxShadow: 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;',
+                                    },
+                                }}
+                            >
+                                <ListItemText
+                                    primary={"Saved Videos"}
+                                    sx={{
+                                        "& span": {
+                                            fontWeight: session==-1 ? 500 : 300,
+                                        },
+                                    }}
+                                />
+                            </Box>
+                        </ListItem>
+                        <Divider variant="middle" />
                         <NavItems sessions={sessions} session={session} onNavClick={handleNavClick} />
                     </List>
                 </Box>
                 <Box p={3} mt="auto">
-                    <Button variant="outlined" fullWidth onClick={getSavedVideos}>Saved Videos</Button>
                     <ClientStatusCard
                         connected={connected}
                         handleConnect={handleConnect}
@@ -238,7 +285,7 @@ export default function GetSmarterPage() {
                     <Grid container direction="row" justifyContent="center" alignItems="flex-start" py={3} >
                         <TickerHeader />
                     </Grid>
-                    <VideoGrid session={session} videos={videos} onUpdateVideo={handleUpdateVideo}/>
+                    <VideoGrid session={session} videos={videos} onUpdateVideo={handleUpdateVideo} />
                 </Grid>
             </Box>
             <Drawer

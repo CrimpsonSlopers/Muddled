@@ -5,12 +5,13 @@ import { Grid, Box, CardContent, Typography, CardActions, Chip, IconButton } fro
 
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import YouTubeVideo from './YoutubeVideo';
-import YouTubeThumbnail from './YoutubeThumbnail';
-import BulletPoint from 'components/BulletPoint';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 
+import BulletPoint from 'components/BulletPoint';
 import { formatPublished, formatViewsLikes } from '../helpers';
+import YouTubeVideo from './YoutubeVideo';
+import YouTubeThumbnail from './YoutubeThumbnail';
 
 
 export default function VideoGrid({ videos, onUpdateVideo }) {
@@ -18,23 +19,32 @@ export default function VideoGrid({ videos, onUpdateVideo }) {
 
     const saveVideo = async (index) => {
         try {
-            const updatedVideo = { ...videos[index] };
-            updatedVideo.watch_later = !updatedVideo.watch_later;
-
-            const response = await fetch(`/api/video/${updatedVideo.id}`, {
-                method: "PUT",
+            const video = { ...videos[index] };
+            const response = await fetch(`/api/video/${video.id}`, {
+                method: "PATCH",
                 headers: {
                     "X-CSRFToken": Cookies.get('csrftoken'),
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(updatedVideo)
+                body: JSON.stringify({ watch_later: !video.watch_later})
             });
 
             if (response.status === 200) {
                 const data = await response.json();
-                const updatedVideos = [...videos];
-                updatedVideos[index] = data.results;
-                onUpdateVideo(updatedVideos);
+                const newVideos = videos.map((video) => {
+                    if (video.id === data.results.id) {
+                        const updatedVideo = {
+                            ...video,
+                            watch_later: data.results.watch_later,
+                        };
+
+                        return updatedVideo;
+                    }
+
+                    return video;
+                });
+
+                onUpdateVideo(newVideos);
             } else {
                 throw new Error(`Unexpected response status: ${response.status}`);
             }
@@ -46,22 +56,34 @@ export default function VideoGrid({ videos, onUpdateVideo }) {
     const muteViewer = async (index) => {
         try {
             const viewer = { ...videos[index].viewer };
-            viewer.muted = true;
-
             const response = await fetch(`/api/viewer/${viewer.login}`, {
                 method: "PUT",
                 headers: {
                     "X-CSRFToken": Cookies.get('csrftoken'),
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(viewer)
+                body: JSON.stringify({
+                    ...viewer,
+                    muted: !viewer.muted,
+                })
             });
 
             if (response.status === 200) {
                 const data = await response.json();
-                const updatedVideos = [...videos];
-                updatedVideos[index].viewer.muted = true;
-                onUpdateVideo(updatedVideos);
+                const newVideos = videos.map((video) => {
+                    if (video.viewer.login === data.results.login) {
+                        const updatedVideo = {
+                            ...video,
+                            viewer: data.results,
+                        };
+
+                        return updatedVideo;
+                    }
+
+                    return video;
+                });
+
+                onUpdateVideo(newVideos);
             } else {
                 throw new Error(`Unexpected response status: ${response.status}`);
             }
@@ -96,10 +118,10 @@ export default function VideoGrid({ videos, onUpdateVideo }) {
                         alignItems="center"
                     >
                         <Chip size="small" label={`submitted by: ${video.viewer.login}`} />
-                        <IconButton aria-label="delete" size="large" onClick={() => muteViewer(index)}>
-                            <VolumeOffIcon />
+                        <IconButton size="large" onClick={() => muteViewer(index)}>
+                            {video.viewer.muted ? <VolumeUpIcon /> : <VolumeOffIcon />}
                         </IconButton>
-                        <IconButton aria-label="delete" size="large" onClick={() => saveVideo(index)}>
+                        <IconButton size="large" onClick={() => saveVideo(index)}>
                             {video.watch_later ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                         </IconButton>
                     </Box>

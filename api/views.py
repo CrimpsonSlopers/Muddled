@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db.models import Count
 
 from api.models import *
 from api.serializers import *
@@ -36,11 +37,33 @@ class VideoView(APIView):
             return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, id=None):
-        video = Video.objects.get(id=id)
-        video.watch_later = not video.watch_later
-        video.save()
-        serializer = VideoSerializer(video)
-        return Response({"results": serializer.data}, status=status.HTTP_200_OK)
+        try:
+            video = Video.objects.get(id=id)
+            serializer = VideoSerializer(video, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"results": serializer.data}, status=status.HTTP_200_OK)
+            
+            else:
+                return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except ObjectDoesNotExist:
+            return Response({"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+    def patch(self, request, id=None):
+        try:
+            video = Video.objects.get(id=id)
+            serializer = VideoSerializer(video, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"results": serializer.data}, status=status.HTTP_200_OK)
+            
+            else:
+                return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except ObjectDoesNotExist:
+            return Response({"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class SavedVideosView(generics.ListAPIView):
@@ -52,6 +75,7 @@ class StreamSessionView(APIView):
 
     def get(self, request, id=None):
         try:
+            StreamSession.objects.annotate(video_count=Count('videos')).filter(video_count=0).delete()
             if id:
                 stream_session = StreamSession.objects.get(id=id)
                 serializer = StreamSessionSerializer(stream_session)
@@ -102,10 +126,7 @@ class VideoSubmitted(APIView):
         if viewer.muted:
             return Response({"error": "Viewer is muted"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if session_id == '0':
-            session = StreamSession.objects.create()
-        else:
-            session = StreamSession.objects.get(id=session_id)
+        session = StreamSession.objects.get(id=session_id)
             
         if Video.objects.filter(session=session, video_id=video_id).exists():
             return Response({"error": "Video already exists in current session"}, status=status.HTTP_400_BAD_REQUEST)
@@ -193,5 +214,3 @@ class ViewerView(APIView):
         except ObjectDoesNotExist:
             return Response({"error": "Viewer not found"}, status=status.HTTP_404_NOT_FOUND)
         
-
-
