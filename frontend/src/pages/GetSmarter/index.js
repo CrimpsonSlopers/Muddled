@@ -28,7 +28,7 @@ export default function GetSmarterPage() {
     const [sessions, setSessions] = useState([]);
     const [videos, setVideos] = useState([]);
     const [session, setSession] = useState(0);
-    const [channel, setChannel] = useState('crimpsonsloper');
+    const [channel, setChannel] = useState('atrioc');
 
     useEffect(() => {
         setClient(new WebSocket('ws://irc-ws.chat.twitch.tv:80'));
@@ -138,6 +138,7 @@ export default function GetSmarterPage() {
             if (response.status === 200) {
                 const data = await response.json();
                 setVideos(data);
+                setSession(-1);
             } else {
                 throw new Error(`Unexpected response status: ${response.status}`);
             }
