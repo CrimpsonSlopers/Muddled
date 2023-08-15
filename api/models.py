@@ -2,7 +2,7 @@ from django.db import models
 from datetime import datetime
 
 class StreamSession(models.Model):
-    created_at = models.DateTimeField(default=datetime.now())
+    created_at = models.DateTimeField(default=datetime.now)
 
     class Meta:
         ordering  = ["created_at"]
