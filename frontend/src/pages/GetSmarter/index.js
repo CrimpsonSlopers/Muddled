@@ -18,8 +18,8 @@ import NavItems from "./components/NavItems";
 import parseMessage from "utils/irc_message_parser";
 import { Button } from "@mui/material";
 
-const CLIENT_ID = "midf6aaz8hgc14usszu0dgmmo2gqdd";
-const MUDDLED_ACCOUNT = 'Muddled';
+const CLIENT_ID = "wthzled2g8jn1awj93yklttfrg91as";
+const MUDDLED_ACCOUNT = 'crimpsonslopers';
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
 
@@ -54,6 +54,7 @@ export default function GetSmarterPage() {
             client.onmessage = (event) => {
                 let rawIrcMessage = event.data.trimEnd();
                 let messages = rawIrcMessage.split('\r\n');
+                console.log(rawIrcMessage)
 
                 messages.forEach(message => {
                     let parsedMessage = parseMessage(message);
@@ -92,12 +93,6 @@ export default function GetSmarterPage() {
             }
         }
     }, [client]);
-
-    useEffect(() => {
-        if (client) {
-            client.onmessage = (event) => handleMessage(event.data)
-        }
-    }, [session])
 
     const handleMessage = (data) => {
         let rawIrcMessage = data.trimEnd();
