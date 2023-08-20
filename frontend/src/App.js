@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from "react-router-dom";
 
 import { ThemeProvider } from "@mui/material/styles";
@@ -7,7 +7,6 @@ import { theme } from "./theme";
 
 import Landing from "pages/Landing";
 import GetSmarterPage from "pages/GetSmarter";
-
 
 export default function App() {
 

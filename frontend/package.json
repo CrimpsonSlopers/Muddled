@@ -27,6 +27,7 @@
         "@mui/icons-material": "^5.14.0",
         "@mui/material": "^5.14.0",
         "chroma-js": "^2.4.2",
+        "hls.js": "^1.4.10",
         "js-cookie": "^3.0.5",
         "react-hook-form": "^7.45.2",
         "react-player": "^2.12.0",

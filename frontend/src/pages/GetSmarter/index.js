@@ -16,6 +16,7 @@ import VideoGrid from "./components/VideoGrid";
 import NavItems from "./components/NavItems";
 
 import parseMessage from "utils/irc_message_parser";
+import { Button } from "@mui/material";
 
 const CLIENT_ID = "midf6aaz8hgc14usszu0dgmmo2gqdd";
 const MUDDLED_ACCOUNT = 'Muddled';
@@ -50,7 +51,45 @@ export default function GetSmarterPage() {
                 console.log("The connection has been closed successfully.");
             };
 
-            client.onmessage = (event) => handleMessage(event.data)
+            client.onmessage = (event) => {
+                let rawIrcMessage = event.data.trimEnd();
+                let messages = rawIrcMessage.split('\r\n');
+
+                messages.forEach(message => {
+                    let parsedMessage = parseMessage(message);
+                    if (parsedMessage) {
+                        switch (parsedMessage.command.command) {
+                            case 'PRIVMSG':
+                                const match = parsedMessage.parameters.match(youtubeRegex);
+                                const id = (match && match[7].length == 11) ? match[7] : [];
+                                console.log(id)
+
+                                if (id.length > 0) {
+                                    addVideo(id, parsedMessage.source['nick']);
+                                }
+                                break
+
+                            case 'JOIN':
+                                console.log(`Joining ${channel}'s channel`);
+                                break;
+
+                            case 'PART':
+                                console.log(`Leaving ${channel}'s channel`);
+                                break;
+
+                            case 'PING':
+                                console.log("Responding to client with: PONG ", parsedMessage.parameters);
+                                client.send(`PONG ${parsedMessage.parameters}`);
+                                break;
+
+                            case '001':
+                                console.log("Connected and ready to join channel");
+                                break
+
+                        }
+                    }
+                })
+            }
         }
     }, [client]);
 
@@ -152,10 +191,10 @@ export default function GetSmarterPage() {
             const response = await fetch(`/api/session`, {
                 method: "GET",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer twitch ${localStorage.getItem('access_token')}`,
                 }
             });
-
             if (response.status === 200) {
                 const data = await response.json();
                 setSessions(data.results);
@@ -213,6 +252,20 @@ export default function GetSmarterPage() {
         setVideos(videos)
     }
 
+    const handleSortByViews = () => {
+        const sorted = [...videos].sort((a, b) => {
+            return b.view_count - a.view_count;
+        });
+        setVideos(sorted)
+    }
+
+    const handleSortByDuration = () => {
+        const sorted = [...videos].sort((a, b) => {
+            return b.view_count - a.view_count;
+        });
+        setVideos(sorted)
+    }
+
     return (
         <Box sx={{ display: 'flex' }}>
             <Drawer
@@ -239,8 +292,8 @@ export default function GetSmarterPage() {
                         <ListItem key={-1} component="li" sx={{ padding: "0" }} onClick={getSavedVideos}>
                             <Box
                                 sx={{
-                                    background: session==-1 ? "white" : "transparent",
-                                    color: session==-1 ? "#7222C2" : "rgba(0, 0, 0, 0.6)",
+                                    background: session == -1 ? "white" : "transparent",
+                                    color: session == -1 ? "#7222C2" : "rgba(0, 0, 0, 0.6)",
                                     display: "flex",
                                     alignItems: "center",
                                     width: '100%',
@@ -250,10 +303,10 @@ export default function GetSmarterPage() {
                                     cursor: "pointer",
                                     userSelect: "none",
                                     whiteSpace: "nowrap",
-                                    boxShadow: session==-1 ? 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;' : "none",
+                                    boxShadow: session == -1 ? 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;' : "none",
                                     transition: 'all 0.35s ease-in-out',
                                     "&:hover, &:focus": {
-                                        backgroundColor: session==-1 ? null : "white",
+                                        backgroundColor: session == -1 ? null : "white",
                                         boxShadow: 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;',
                                     },
                                 }}
@@ -262,7 +315,7 @@ export default function GetSmarterPage() {
                                     primary={"Saved Videos"}
                                     sx={{
                                         "& span": {
-                                            fontWeight: session==-1 ? 500 : 300,
+                                            fontWeight: session == -1 ? 500 : 300,
                                         },
                                     }}
                                 />
@@ -303,6 +356,9 @@ export default function GetSmarterPage() {
                 variant="permanent"
                 anchor="right"
             >
+                <Box p={3} mt="auto">
+                    <Button onClick={handleSortByViews}>sort</Button>
+                </Box>
             </Drawer>
         </Box >
     )

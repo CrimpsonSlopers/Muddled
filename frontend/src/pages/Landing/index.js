@@ -1,12 +1,10 @@
-import React, { useEffect } from 'react';
-import Cookies from 'js-cookie';
+import React from 'react';
 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 
-const client_id = 'bs99mqyazrfa7tut83c2wa108xasmz';
 
 export default function Landing() {
 
@@ -22,7 +20,7 @@ export default function Landing() {
                     </Typography>
                     <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
                         <a
-                            href={`#`}
+                            href={'/auth/login/twitch/'}
                             style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}
                         >
                             Sign In

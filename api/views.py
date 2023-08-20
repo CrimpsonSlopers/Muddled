@@ -1,40 +1,45 @@
 import requests
+from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Count
+from django.shortcuts import redirect
 
 from api.models import *
 from api.serializers import *
 from muddle.settings import *
 
-class VideoView(APIView):
 
+class VideoView(APIView):
     def get(self, request, id=None):
         try:
             if id:
                 video = Video.objects.get(id=id)
                 serializer = VideoSerializer(video)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
                 video = Video.objects.all()
                 serializer = VideoSerializer(video)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
-        except ObjectDoesNotExist:
-            return Response({"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def post(self, request):
         serializer = VideoSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-        
+
         else:
-            return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def put(self, request, id=None):
         try:
@@ -43,13 +48,16 @@ class VideoView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
-                return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response(
+                    {"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                )
+
         except ObjectDoesNotExist:
-            return Response({"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response(
+                {"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def patch(self, request, id=None):
         try:
@@ -58,12 +66,16 @@ class VideoView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
-                return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response(
+                    {"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                )
+
         except ObjectDoesNotExist:
-            return Response({"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Video not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class SavedVideosView(generics.ListAPIView):
@@ -72,101 +84,118 @@ class SavedVideosView(generics.ListAPIView):
 
 
 class StreamSessionView(APIView):
-
     def get(self, request, id=None):
         try:
-            StreamSession.objects.annotate(video_count=Count('videos')).filter(video_count=0).delete()
+            StreamSession.objects.annotate(video_count=Count("videos")).filter(
+                video_count=0
+            ).delete()
             if id:
                 stream_session = StreamSession.objects.get(id=id)
                 serializer = StreamSessionSerializer(stream_session)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
                 sessions = StreamSession.objects.all()[:10]
                 serializer = StreamSessionSerializer(sessions, many=True)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
-        except ObjectDoesNotExist:
-            return Response({"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def post(self, request):
         try:
             session = StreamSession.objects.create()
             serializer = StreamSessionSerializer(session)
             return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
-        except ObjectDoesNotExist:
-            return Response({"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def put(self, request, id=None):
         try:
             stream_session = StreamSession.objects.get(id=id)
-            serializer = StreamSessionSerializer(stream_session, data=request.data, partial=True)
+            serializer = StreamSessionSerializer(
+                stream_session, data=request.data, partial=True
+            )
             if serializer.is_valid():
                 serializer.save()
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
-                return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response(
+                    {"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                )
+
         except ObjectDoesNotExist:
-            return Response({"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND)
-  
+            return Response(
+                {"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
 
 class VideoSubmitted(APIView):
-    
     def post(self, request, format=None):
-        session_id = request.data.get('session_id')
-        video_id = request.data.get('video_id')
-        login = request.data.get('login')
+        session_id = request.data.get("session_id")
+        video_id = request.data.get("video_id")
+        login = request.data.get("login")
 
         viewer, _ = Viewer.objects.get_or_create(login=login)
         if viewer.muted:
-            return Response({"error": "Viewer is muted"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Viewer is muted"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         session = StreamSession.objects.get(id=session_id)
-            
+
         if Video.objects.filter(session=session, video_id=video_id).exists():
-            return Response({"error": "Video already exists in current session"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "Video already exists in current session"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             params = {
-                'part': 'snippet,contentDetails,statistics',
-                'id': video_id,
-                'key': YOUTUBE_API_KEY
+                "part": "snippet,contentDetails,statistics",
+                "id": video_id,
+                "key": YOUTUBE_API_KEY,
             }
-            youtube_api_url = f'https://youtube.googleapis.com/youtube/v3/videos'
+            youtube_api_url = f"https://youtube.googleapis.com/youtube/v3/videos"
             response = requests.get(youtube_api_url, params=params)
             response.raise_for_status()
             data = response.json()
 
-            if data['pageInfo']['totalResults'] == 1:
-                data = data['items'][0]
+            if data["pageInfo"]["totalResults"] == 1:
+                data = data["items"][0]
                 video = Video(
-                    video_id= video_id,
-                    title = data['snippet']['title'],
-                    viewer = viewer,
-                    channel_name = data['snippet']['channelTitle'],
-                    thumbnail_url = data['snippet']['thumbnails']['medium']['url'],
-                    duration = data['contentDetails']['duration'],
-                    view_count = data['statistics']['viewCount'],
-                    like_count = data['statistics']['likeCount'],
-                    published_at = data['snippet']['publishedAt'],
-                    session = session
+                    video_id=video_id,
+                    title=data["snippet"]["title"],
+                    viewer=viewer,
+                    channel_name=data["snippet"]["channelTitle"],
+                    thumbnail_url=data["snippet"]["thumbnails"]["medium"]["url"],
+                    duration=data["contentDetails"]["duration"],
+                    view_count=data["statistics"]["viewCount"],
+                    like_count=data["statistics"]["likeCount"],
+                    published_at=data["snippet"]["publishedAt"],
+                    session=session,
                 )
                 video.save()
                 serializer = VideoSerializer(video)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
-                return Response({"error": "Video not found in YouTube API"}, status=status.HTTP_404_NOT_FOUND)
-                
+                return Response(
+                    {"error": "Video not found in YouTube API"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
         except requests.exceptions.RequestException as e:
-            return Response({"error": "Error while fetching YouTube API data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        
+            return Response(
+                {"error": "Error while fetching YouTube API data"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class ViewerView(APIView):
@@ -176,29 +205,35 @@ class ViewerView(APIView):
                 viewer = Viewer.objects.get_or_create(login=login)
                 serializer = ViewerSerializer(viewer)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
                 viewers = Viewer.objects.all()
                 serializer = ViewerSerializer(viewers, many=True)
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
-        except ObjectDoesNotExist:
-            return Response({"error": "Viewer not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "Viewer not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def post(self, request):
         try:
             serializer = ViewerSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response({"results": serializer.data}, status=status.HTTP_201_CREATED)
-            
-            else:
-                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-            
-        except ObjectDoesNotExist:
-            return Response({"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"results": serializer.data}, status=status.HTTP_201_CREATED
+                )
 
+            else:
+                return Response(
+                    {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def put(self, request, login=None):
         try:
@@ -207,10 +242,13 @@ class ViewerView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-            
+
             else:
-                return Response({"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response(
+                    {"results": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                )
+
         except ObjectDoesNotExist:
-            return Response({"error": "Viewer not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response(
+                {"error": "Viewer not found"}, status=status.HTTP_404_NOT_FOUND
+            )
