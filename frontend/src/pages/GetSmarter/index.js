@@ -51,46 +51,7 @@ export default function GetSmarterPage() {
                 console.log("The connection has been closed successfully.");
             };
 
-            client.onmessage = (event) => {
-                let rawIrcMessage = event.data.trimEnd();
-                let messages = rawIrcMessage.split('\r\n');
-                console.log(rawIrcMessage)
-
-                messages.forEach(message => {
-                    let parsedMessage = parseMessage(message);
-                    if (parsedMessage) {
-                        switch (parsedMessage.command.command) {
-                            case 'PRIVMSG':
-                                const match = parsedMessage.parameters.match(youtubeRegex);
-                                const id = (match && match[7].length == 11) ? match[7] : [];
-                                console.log(id)
-
-                                if (id.length > 0) {
-                                    addVideo(id, parsedMessage.source['nick']);
-                                }
-                                break
-
-                            case 'JOIN':
-                                console.log(`Joining ${channel}'s channel`);
-                                break;
-
-                            case 'PART':
-                                console.log(`Leaving ${channel}'s channel`);
-                                break;
-
-                            case 'PING':
-                                console.log("Responding to client with: PONG ", parsedMessage.parameters);
-                                client.send(`PONG ${parsedMessage.parameters}`);
-                                break;
-
-                            case '001':
-                                console.log("Connected and ready to join channel");
-                                break
-
-                        }
-                    }
-                })
-            }
+            client.onmessage = (event) => handleMessage(event.data)
         }
     }, [client]);
 
