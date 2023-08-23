@@ -26,7 +26,7 @@ export default function VideoGrid({ videos, onUpdateVideo }) {
                     "X-CSRFToken": Cookies.get('csrftoken'),
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ watch_later: !video.watch_later})
+                body: JSON.stringify({ watch_later: !video.watch_later })
             });
 
             if (response.status === 200) {
@@ -100,7 +100,7 @@ export default function VideoGrid({ videos, onUpdateVideo }) {
                 <Box display={"flex"} flexDirection={"column"} width={"320px"}>
                     <Box position="relative" onClick={() => setSelectedVideo(index)}>
                         {active
-                            ? <YouTubeVideo id={video.video_id} />
+                            ? <YouTubeVideo video={video} />
                             : <YouTubeThumbnail video={video} />
                         }
                     </Box>
