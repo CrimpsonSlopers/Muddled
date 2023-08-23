@@ -55,6 +55,13 @@ export default function GetSmarterPage() {
         }
     }, [client]);
 
+    useEffect(() => {
+        if (session > 0) {
+            client.onmessage = (event) => handleMessage(event.data)
+
+        }
+    }, [session])
+
     const handleMessage = (data) => {
         let rawIrcMessage = data.trimEnd();
         let messages = rawIrcMessage.split('\r\n');
