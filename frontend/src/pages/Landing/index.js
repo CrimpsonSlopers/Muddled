@@ -18,14 +18,6 @@ export default function Landing() {
                     <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
                         <a href='/get-smarter' style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}>Get Smarter</a>
                     </Typography>
-                    <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
-                        <a
-                            href={'/auth/login/twitch/'}
-                            style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}
-                        >
-                            Sign In
-                        </a>
-                    </Typography>
                 </Toolbar>
             </AppBar>
             <Box sx={{
