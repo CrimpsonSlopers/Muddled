@@ -224,7 +224,7 @@ export default function GetSmarterPage() {
 
     const handleSortByDuration = () => {
         const sorted = [...videos].sort((a, b) => {
-            return b.view_count - a.view_count;
+            return b.duration - a.duration;
         });
         setVideos(sorted)
     }
@@ -319,38 +319,7 @@ export default function GetSmarterPage() {
                                 />
                             </Box>
                         </ListItem>
-                        <ListItem key={2} component="li" sx={{ padding: "0" }} onClick={handleSortByDuration}>
-                            <Box
-                                sx={{
-                                    background: "transparent",
-                                    color: "rgba(0, 0, 0, 0.6)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    width: '100%',
-                                    padding: '8px 16px',
-                                    margin: '2px 12px',
-                                    borderRadius: '4px',
-                                    cursor: "pointer",
-                                    userSelect: "none",
-                                    whiteSpace: "nowrap",
-                                    boxShadow: "none",
-                                    transition: 'all 0.35s ease-in-out',
-                                    "&:hover, &:focus": {
-                                        backgroundColor: "white",
-                                        boxShadow: 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;',
-                                    },
-                                }}
-                            >
-                                <ListItemText
-                                    primary={"Sort By Duration"}
-                                    sx={{
-                                        "& span": {
-                                            fontWeight: 300,
-                                        },
-                                    }}
-                                />
-                            </Box>
-                        </ListItem>
+
                     </List>
                 </Box>
                 <Box p={3} mt="auto">
