@@ -17,7 +17,7 @@ export default function ClientStatusCard({ connected, handleConnect, channel, up
             'width': '100%'
         }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-end', pb: "1rem" }}>
-                {connected 
+                {connected
                     ? <WifiIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
                     : <WifiOffIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
                 }

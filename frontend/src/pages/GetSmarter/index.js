@@ -284,8 +284,6 @@ export default function GetSmarterPage() {
                                 />
                             </Box>
                         </ListItem>
-                        <Divider variant="middle" />
-                        <NavItems sessions={sessions} session={session} onNavClick={handleNavClick} />
                     </List>
                 </Box>
                 <Box p={3} mt="auto">
@@ -299,9 +297,6 @@ export default function GetSmarterPage() {
             </Drawer >
             <Box component="main" sx={{ flexGrow: 1, padding: 3, overflow: "auto", height: "100vh" }}>
                 <Grid container spacing={3} justifyContent={"center"}>
-                    <Grid container direction="row" justifyContent="center" alignItems="flex-start" py={3} >
-                        <TickerHeader />
-                    </Grid>
                     <VideoGrid session={session} videos={videos} onUpdateVideo={handleUpdateVideo} />
                 </Grid>
             </Box>
@@ -319,9 +314,6 @@ export default function GetSmarterPage() {
                 variant="permanent"
                 anchor="right"
             >
-                <Box p={3} mt="auto">
-                    <Button onClick={handleSortByViews}>sort</Button>
-                </Box>
             </Drawer>
         </Box >
     )

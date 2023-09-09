@@ -1,11 +1,9 @@
 import requests
-from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import generics, status, permissions
+from django.db.models import Count
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Count
-from django.shortcuts import redirect
 
 from api.models import *
 from api.serializers import *

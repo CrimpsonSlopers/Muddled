@@ -36,17 +36,18 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = [
-    "api.apps.ApiConfig",
-    "frontend.apps.FrontendConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Misc
+    # Apps
     "corsheaders",
     "rest_framework",
+    # Local apps
+    "api.apps.ApiConfig",
+    "frontend.apps.FrontendConfig",
 ]
 
 

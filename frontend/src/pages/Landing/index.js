@@ -9,49 +9,35 @@ import Typography from '@mui/material/Typography';
 export default function Landing() {
 
     return (
-        <div>
+        <Box sx={{
+            backgroundImage: `url(/static/images/cover.png)`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            width: '100vw',
+            height: '100vh',
+        }} >
+
             <AppBar sx={{ background: 'transparent', boxShadow: 'none' }}>
                 <Toolbar>
-                    <Typography variant='h4' component='div' sx={{ flexGrow: 1 }}>
-                        Muddled
+                    <Typography variant='h5' component='div' sx={{ flexGrow: 1 }}>
+                        <a href='/' style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Muddled</a>
                     </Typography>
-                    <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
-                        <a href='/get-smarter' style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}>Get Smarter</a>
+                    <Typography variant='body1' component='div' sx={{ marginRight: '20px', fontWeight: "bold" }}>
+                        <a href='/get-smarter' style={{ color: 'white', textDecoration: 'none' }}>Get Smarter</a>
                     </Typography>
-                    <Typography variant='body2' component='div' sx={{ marginRight: '20px' }}>
+                    {/*
+                    <Typography variant='body1' component='div' sx={{ marginRight: '20px', fontWeight: "bold" }}>
                         <a
-                            href={'/auth/login/twitch/'}
+                            href={'/api/twitch_oauth_login/'}
                             style={{ color: 'white', textDecoration: 'none', fontWeight: 'light' }}
                         >
                             Sign In
                         </a>
                     </Typography>
+                    */}
                 </Toolbar>
             </AppBar>
-            <Box sx={{
-                background: 'radial-gradient(ellipse at 15% 20%, #7222C2 0%, #2D0841 100%);',
-                width: '100vw',
-                height: '100vh',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'column',
-            }}>
-                <Typography sx={{
-                    fontSize: '6.0vw !important',
-                    lineHeight: '1',
-                    color: 'white',
-                    fontWeight: '900'
-                }}>
-                    MUDDLED
-                </Typography>
-                <Typography sx={{
-                    letterSpacing: '3px',
-                    color: 'white'
-                }}>
-                    a site for ATRIOC
-                </Typography>
-            </Box>
-        </div>
+        </Box>
     )
 }
