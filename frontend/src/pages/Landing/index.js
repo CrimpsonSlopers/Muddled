@@ -26,6 +26,7 @@ export default function Landing() {
                     <Typography variant='body1' component='div' sx={{ marginRight: '20px', fontWeight: "bold" }}>
                         <a href='/get-smarter' style={{ color: 'white', textDecoration: 'none' }}>Get Smarter</a>
                     </Typography>
+<<<<<<< HEAD
                     {/*
                     <Typography variant='body1' component='div' sx={{ marginRight: '20px', fontWeight: "bold" }}>
                         <a
@@ -36,6 +37,8 @@ export default function Landing() {
                         </a>
                     </Typography>
                     */}
+=======
+>>>>>>> d4905a1df46ec4be3f841deee86225f88f6aa5fe
                 </Toolbar>
             </AppBar>
         </Box>
