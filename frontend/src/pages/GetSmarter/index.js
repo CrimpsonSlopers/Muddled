@@ -14,13 +14,8 @@ import ClientStatusCard from "./components/ClientStatusCard";
 import VideoGrid from "./components/VideoGrid";
 import parseMessage from "utils/irc_message_parser";
 
-<<<<<<< HEAD
-const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
-const MUDDLED_ACCOUNT = 'muddled';
-=======
 const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
 const MUDDLED_ACCOUNT = 'crimpsonslopers';
->>>>>>> 0b3d6509b77f28d52b1ac3d4786539ca114bf9c2
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
 
