@@ -3,23 +3,19 @@ import Cookies from 'js-cookie';
 
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
 import Drawer from '@mui/material/Drawer';
-import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
 
-import TickerHeader from "components/TickerHeader";
 import ClientStatusCard from "./components/ClientStatusCard";
 import VideoGrid from "./components/VideoGrid";
-import NavItems from "./components/NavItems";
-
 import parseMessage from "utils/irc_message_parser";
-import { Button } from "@mui/material";
 
 const CLIENT_ID = "wthzled2g8jn1awj93yklttfrg91as";
-const MUDDLED_ACCOUNT = 'crimpsonslopers';
+const MUDDLED_ACCOUNT = 'muddled';
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
 
@@ -206,11 +202,6 @@ export default function GetSmarterPage() {
         }
     }
 
-    const handleNavClick = (session) => {
-        setSession(session.id)
-        setVideos(session.videos);
-    }
-
     const handleUpdateVideo = (videos) => {
         setVideos(videos)
     }
@@ -224,7 +215,7 @@ export default function GetSmarterPage() {
 
     const handleSortByDuration = () => {
         const sorted = [...videos].sort((a, b) => {
-            return b.duration - a.duration;
+            return a.duration - b.duration;
         });
         setVideos(sorted)
     }
@@ -286,7 +277,6 @@ export default function GetSmarterPage() {
                         </ListItem>
 
                         <Divider variant="middle" />
-
                         <ListItem key={1} component="li" sx={{ padding: "0" }} onClick={handleSortByViews}>
                             <Box
                                 sx={{
@@ -311,6 +301,38 @@ export default function GetSmarterPage() {
                             >
                                 <ListItemText
                                     primary={"Sort By Views"}
+                                    sx={{
+                                        "& span": {
+                                            fontWeight: 300,
+                                        },
+                                    }}
+                                />
+                            </Box>
+                        </ListItem>
+                        <ListItem key={2} component="li" sx={{ padding: "0" }} onClick={handleSortByDuration}>
+                            <Box
+                                sx={{
+                                    background: "transparent",
+                                    color: "rgba(0, 0, 0, 0.6)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: '100%',
+                                    padding: '8px 16px',
+                                    margin: '2px 12px',
+                                    borderRadius: '4px',
+                                    cursor: "pointer",
+                                    userSelect: "none",
+                                    whiteSpace: "nowrap",
+                                    boxShadow: "none",
+                                    transition: 'all 0.35s ease-in-out',
+                                    "&:hover, &:focus": {
+                                        backgroundColor: "white",
+                                        boxShadow: 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;',
+                                    },
+                                }}
+                            >
+                                <ListItemText
+                                    primary={"Sort By Duration"}
                                     sx={{
                                         "& span": {
                                             fontWeight: 300,

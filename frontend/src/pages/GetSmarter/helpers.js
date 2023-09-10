@@ -47,46 +47,32 @@ export function formatPublished(date) {
     }
 }
 
-export function formatDuration(duration) {
+export function formatDuration(seconds) {
     try {
-        // Regular expressions to match different parts of the duration
-        const hourRegex = /(\d+)H/;
-        const minuteRegex = /(\d+)M/;
-        const secondRegex = /(\d+)S/;
+        // Calculate hours, minutes, and seconds
+        const hours = Math.floor(seconds / 3600);
+        const remainingSeconds = seconds % 3600;
+        const minutes = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
 
-        let hours = 0;
-        let minutes = 0;
-        let seconds = 0;
+        // Format the result based on the presence of hours
+        let formattedTime = '';
 
-        // Extract hours, minutes, and seconds using regular expressions
-        const hourMatch = duration.match(hourRegex);
-        if (hourMatch) {
-            hours = parseInt(hourMatch[1]);
+        if (hours > 0) {
+            const formattedHours = hours < 10 ? `0${hours}` : `${hours}`;
+            formattedTime += `${formattedHours}:`;
         }
 
-        const minuteMatch = duration.match(minuteRegex);
-        if (minuteMatch) {
-            minutes = parseInt(minuteMatch[1]);
-        }
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`;
+        const formattedSeconds = secs < 10 ? `0${secs}` : `${secs}`;
 
-        const secondMatch = duration.match(secondRegex);
-        if (secondMatch) {
-            seconds = parseInt(secondMatch[1]);
-        }
+        formattedTime += `${formattedMinutes}:${formattedSeconds}`;
 
-        // Format hours, minutes, and seconds into HH:MM:SS
-        const formattedHours = hours.toString().padStart(2, '0');
-        const formattedMinutes = minutes.toString().padStart(2, '0');
-        const formattedSeconds = seconds.toString().padStart(2, '0');
-
-        if (hourMatch) {
-            return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-        }
-        return `${formattedMinutes}:${formattedSeconds}`;
+        return formattedTime;
     }
     catch (err) {
-        console.error("Error formatting duration: ", duration);
-        return duration
+        console.error("Error formatting duration: ", seconds);
+        return seconds
     }
 
 }
@@ -104,7 +90,7 @@ function getDaySuffix(day) {
 }
 
 export function formatStreamDate(timestamp) {
-    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     const date = new Date(timestamp);
     const options = { month: 'long', day: 'numeric' };
@@ -113,5 +99,5 @@ export function formatStreamDate(timestamp) {
     const day = date.getDate();
     const suffix = getDaySuffix(day);
 
-    return days[ date.getDay() ] + ', ' + formattedDate.replace(day.toString(), `${day}${suffix}`);
+    return days[date.getDay()] + ', ' + formattedDate.replace(day.toString(), `${day}${suffix}`);
 }

@@ -39,7 +39,13 @@ export default function ClientStatusCard({ connected, handleConnect, channel, up
                 alignItems="center"
                 display="flex"
             >
-                <Button size="small" onClick={handleConnect} variant="contained">{connected ? "Disconnect" : "Connect"}</Button>
+                <Button
+                    size="small"
+                    onClick={handleConnect}
+                    variant="contained"
+                >
+                    {connected ? "Disconnect" : "Connect"}
+                </Button>
             </Box>
         </Card>
     )

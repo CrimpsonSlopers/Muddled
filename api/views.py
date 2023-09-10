@@ -1,4 +1,6 @@
+import isodate
 import requests
+from django.contrib.auth import authenticate, login
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from rest_framework import generics, status
@@ -8,6 +10,27 @@ from rest_framework.views import APIView
 from api.models import *
 from api.serializers import *
 from muddle.settings import *
+
+
+class AuthenticateUser(APIView):
+    def get(self, request, format=None):
+        if request.user.is_staff:
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+class Login(APIView):
+    def post(self, request, format=None):
+        username = request.data["username"]
+        password = request.data["password"]
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 class VideoView(APIView):
@@ -167,13 +190,14 @@ class VideoSubmitted(APIView):
 
             if data["pageInfo"]["totalResults"] == 1:
                 data = data["items"][0]
+                duration = isodate.parse_duration(data["contentDetails"]["duration"])
                 video = Video(
                     video_id=video_id,
                     title=data["snippet"]["title"],
                     viewer=viewer,
                     channel_name=data["snippet"]["channelTitle"],
                     thumbnail_url=data["snippet"]["thumbnails"]["medium"]["url"],
-                    duration=data["contentDetails"]["duration"],
+                    duration=duration.total_seconds(),
                     view_count=data["statistics"]["viewCount"],
                     like_count=data["statistics"]["likeCount"],
                     published_at=data["snippet"]["publishedAt"],
