@@ -18,7 +18,7 @@ import NavItems from "./components/NavItems";
 import parseMessage from "utils/irc_message_parser";
 import { Button } from "@mui/material";
 
-const CLIENT_ID = "wthzled2g8jn1awj93yklttfrg91as";
+const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
 const MUDDLED_ACCOUNT = 'crimpsonslopers';
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
