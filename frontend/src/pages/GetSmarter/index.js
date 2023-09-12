@@ -10,8 +10,8 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 
-import ClientStatusCard from "./components/ClientStatusCard";
-import VideoGrid from "./components/VideoGrid";
+import ClientStatusCard from "components/ClientStatusCard";
+import VideoGrid from "components/VideoGrid";
 import parseMessage from "utils/irc_message_parser";
 
 const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
@@ -29,7 +29,6 @@ export default function GetSmarterPage() {
 
     useEffect(() => {
         setClient(new WebSocket('ws://irc-ws.chat.twitch.tv:80'));
-        getSessions();
     }, [])
 
     useEffect(() => {
@@ -54,7 +53,6 @@ export default function GetSmarterPage() {
     useEffect(() => {
         if (session > 0) {
             client.onmessage = (event) => handleMessage(event.data)
-
         }
     }, [session])
 
@@ -69,7 +67,6 @@ export default function GetSmarterPage() {
                     case 'PRIVMSG':
                         const match = parsedMessage.parameters.match(youtubeRegex);
                         const id = (match && match[7].length == 11) ? match[7] : [];
-                        console.log(id)
 
                         if (id.length > 0) {
                             addVideo(id, parsedMessage.source['nick']);
@@ -116,47 +113,6 @@ export default function GetSmarterPage() {
             if (response.status === 200) {
                 const data = await response.json();
                 setVideos(oldArray => [...oldArray, data.results]);
-            } else {
-                throw new Error(`Unexpected response status: ${response.status}`);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const getSavedVideos = async () => {
-        try {
-            const response = await fetch(`/api/saved-videos`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
-
-            if (response.status === 200) {
-                const data = await response.json();
-                setVideos(data);
-                setSession(-1);
-            } else {
-                throw new Error(`Unexpected response status: ${response.status}`);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const getSessions = async () => {
-        try {
-            const response = await fetch(`/api/session`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer twitch ${localStorage.getItem('access_token')}`,
-                }
-            });
-            if (response.status === 200) {
-                const data = await response.json();
-                setSessions(data.results);
             } else {
                 throw new Error(`Unexpected response status: ${response.status}`);
             }
@@ -243,40 +199,6 @@ export default function GetSmarterPage() {
                 </Box >
                 <Box overflow={"auto"}>
                     <List>
-                        <ListItem key={-1} component="li" sx={{ padding: "0" }} onClick={getSavedVideos}>
-                            <Box
-                                sx={{
-                                    background: session == -1 ? "white" : "transparent",
-                                    color: session == -1 ? "#7222C2" : "rgba(0, 0, 0, 0.6)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    width: '100%',
-                                    padding: '8px 16px',
-                                    margin: '2px 12px',
-                                    borderRadius: '4px',
-                                    cursor: "pointer",
-                                    userSelect: "none",
-                                    whiteSpace: "nowrap",
-                                    boxShadow: session == -1 ? 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;' : "none",
-                                    transition: 'all 0.35s ease-in-out',
-                                    "&:hover, &:focus": {
-                                        backgroundColor: session == -1 ? null : "white",
-                                        boxShadow: 'rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;',
-                                    },
-                                }}
-                            >
-                                <ListItemText
-                                    primary={"Saved Videos"}
-                                    sx={{
-                                        "& span": {
-                                            fontWeight: session == -1 ? 500 : 300,
-                                        },
-                                    }}
-                                />
-                            </Box>
-                        </ListItem>
-
-                        <Divider variant="middle" />
                         <ListItem key={1} component="li" sx={{ padding: "0" }} onClick={handleSortByViews}>
                             <Box
                                 sx={{

@@ -6,6 +6,8 @@ import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
 import { theme } from "./theme";
+
+import Archives from 'pages/Archive';
 import Landing from "pages/Landing";
 import Login from "pages/Login";
 import GetSmarterPage from "pages/GetSmarter";
@@ -19,6 +21,7 @@ export default function App() {
                 <Routes>
                     <Route index element={<Landing />} />
                     <Route path="login" element={<Login />} />
+                    <Route path="archives" element={<Archives />} />
                     <Route path="get-smarter" element={<ProtectedRoute><GetSmarterPage /></ProtectedRoute>} />
                 </Routes>
             </ThemeProvider>

@@ -24,6 +24,9 @@ export default function Landing() {
                         <a href='/' style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Muddled</a>
                     </Typography>
                     <Typography variant='body1' component='div' sx={{ marginRight: '20px', fontWeight: "bold" }}>
+                        <a href='/archives' style={{ color: 'white', textDecoration: 'none' }}>Archives</a>
+                    </Typography>
+                    <Typography variant='body1' component='div' sx={{ marginRight: '20px', fontWeight: "bold" }}>
                         <a href='/get-smarter' style={{ color: 'white', textDecoration: 'none' }}>Get Smarter</a>
                     </Typography>
                 </Toolbar>
