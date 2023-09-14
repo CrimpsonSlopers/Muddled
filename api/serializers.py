@@ -8,7 +8,7 @@ class ViewerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class VideoSerializer(serializers.ModelSerializer):
-    viewer = ViewerSerializer()  # Include the ViewerSerializer for the viewer field
+    viewer = ViewerSerializer()
 
     class Meta:
         model = Video

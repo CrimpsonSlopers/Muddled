@@ -1,4 +1,7 @@
-Django
+datetime
+django
 django-cors-headers
 djangorestframework
+isodate
 requests
+tqdm

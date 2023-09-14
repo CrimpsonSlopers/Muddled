@@ -1,6 +1,7 @@
-import isodate
-import requests
 import json
+import isodate
+import re
+import requests
 from tqdm import tqdm
 from django.contrib.auth import authenticate, login
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,13 +9,11 @@ from django.db.models import Count
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import re
+from urllib.parse import urlparse, parse_qs
 
 from api.models import *
 from api.serializers import *
 from muddle.settings import *
-
-from urllib.parse import urlparse, parse_qs
 
 
 def get_id(url):
@@ -86,7 +85,7 @@ class AddArchive(APIView):
                             except:
                                 tqdm.write("Error adding vid")
 
-                    except requests.exceptions.RequestException as e:
+                    except requests.exceptions.RequestException:
                         tqdm.write("Error while fetching YouTube API data")
 
 

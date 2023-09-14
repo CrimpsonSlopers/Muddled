@@ -26,7 +26,13 @@ SECRET_KEY = "django-insecure-abaabllth4ipn#eyi*6w9ra3!sjo)=6+yde^i_d-)9y5wx#sr3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "3.129.228.189", "muddled.live", "www.muddled.live"]
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    "localhost", 
+    "3.129.228.189", 
+    "muddled.live", 
+    "www.muddled.live"
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
@@ -136,3 +142,4 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 YOUTUBE_API_KEY = "AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg"
+
