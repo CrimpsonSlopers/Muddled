@@ -99,7 +99,7 @@ DATABASES = {
         "NAME": "Muddle",
         "USER": "crimpsonsloper",
         "PASSWORD": "17Nikefree!",
-        "HOST": "muddled-instance.cb5dgkhdduzz.us-east-2.rds.amazonaws.com",
+        "HOST": "muddle-db.cb5dgkhdduzz.us-east-2.rds.amazonaws.com",
         "PORT": 3306,
         # "ENGINE": "django.db.backends.sqlite3",
         # "NAME": BASE_DIR / "db.sqlite3",
