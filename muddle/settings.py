@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "13.52.122.223",
+    "3.129.228.189",
     "muddled.live",
     "www.muddled.live",
 ]
