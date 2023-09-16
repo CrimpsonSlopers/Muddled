@@ -1,23 +1,29 @@
+from django.conf import settings
 from django.db import models
-from datetime import datetime
+from django.utils.timezone import now
 
 
 class StreamSession(models.Model):
-    created_at = models.DateTimeField(default=datetime.now)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s",
+    )
+    created_at = models.DateTimeField(default=now, editable=True)
 
     class Meta:
         ordering = ["created_at"]
 
     def __str__(self) -> str:
-        return f"Stream Session - {self.created_at}"
+        return f"Archive - {self.created_at}"
 
 
 class Viewer(models.Model):
-    login = models.CharField(max_length=250, primary_key=True)
+    username = models.CharField(max_length=250, primary_key=True)
     muted = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return self.login
+        return self.username
 
 
 class Video(models.Model):
@@ -36,7 +42,7 @@ class Video(models.Model):
     duration = models.IntegerField(default=0)
     view_count = models.IntegerField(default=0)
     like_count = models.IntegerField(default=0)
-    published_at = models.DateTimeField(default=datetime(1970, 1, 1, 0, 0, 0))
+    published_at = models.DateTimeField(default=now)
     watch_later = models.BooleanField(null=False, default=False)
     session = models.ForeignKey(
         StreamSession, related_name="videos", on_delete=models.CASCADE

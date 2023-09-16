@@ -20,8 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-abaabllth4ipn#eyi*6w9ra3!sjo)=6+yde^i_d-)9y5wx#sr3"
+SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -94,14 +93,15 @@ WSGI_APPLICATION = "muddle.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        # "ENGINE": "django.db.backends.mysql",
-        # "NAME": "Muddle",
-        # "USER": "admin",
-        # "PASSWORD": "671Cocoa!",
-        # "HOST": "muddled-db.coez66i7xsab.us-west-1.rds.amazonaws.com",
-        # "PORT": 3306,
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ["DB_NAME"],
+        "USER": os.environ["DB_USER"],
+        "PASSWORD": os.environ["DB_PASSWORD"],
+        "HOST": os.environ["DB_HOST"],
+        "PORT": 3306,
+        "OPTIONS": {
+            "sql_mode": "traditional",
+        },
     }
 }
 
@@ -147,4 +147,4 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-YOUTUBE_API_KEY = "AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg"
+YOUTUBE_API_KEY = os.environ["YOUTUBE_API_KEY"]
