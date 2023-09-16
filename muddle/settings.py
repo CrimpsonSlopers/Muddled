@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "3.129.228.189",
+    "13.52.122.223",
     "muddled.live",
     "www.muddled.live",
 ]
@@ -98,7 +98,7 @@ DATABASES = {
         "NAME": "Muddle",
         "USER": "admin",
         "PASSWORD": "17Nikefree!",
-        "HOST": "muddle-db.cb5dgkhdduzz.us-west-1.rds.amazonaws.com",
+        "HOST": "muddled-db.coez66i7xsab.us-west-1.rds.amazonaws.com",
         "PORT": 3306,
     }
 }
