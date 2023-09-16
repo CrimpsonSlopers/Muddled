@@ -44,9 +44,6 @@ class Video(models.Model):
     like_count = models.IntegerField(default=0)
     published_at = models.DateTimeField(default=now)
     watch_later = models.BooleanField(null=False, default=False)
-    session = models.ForeignKey(
-        StreamSession, related_name="videos", on_delete=models.CASCADE
-    )
 
     class Meta:
         ordering = ["-submitted_at"]
