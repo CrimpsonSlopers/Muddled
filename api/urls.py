@@ -10,7 +10,6 @@ urlpatterns = [
     path("video-submitted", VideoSubmitted.as_view()),
     path("viewer", ViewerView.as_view()),
     path("viewer/<str:login>", ViewerView.as_view()),
-    path("add_archive", AddArchive.as_view()),
     # Authenticate
     path("authenticate", AuthenticateUser.as_view()),
     path("login", Login.as_view()),

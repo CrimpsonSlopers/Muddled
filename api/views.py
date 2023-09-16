@@ -1,92 +1,15 @@
-import json
 import isodate
-import re
 import requests
-from tqdm import tqdm
 from django.contrib.auth import authenticate, login
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from urllib.parse import urlparse, parse_qs
 
 from api.models import *
 from api.serializers import *
 from muddle.settings import *
-
-
-def get_id(url):
-    u_pars = urlparse(url)
-    quer_v = parse_qs(u_pars.query).get("v")
-    if quer_v:
-        return quer_v[0]
-    pth = u_pars.path.split("/")
-    if pth:
-        return pth[-1]
-
-
-class AddArchive(APIView):
-    def post(self, request, format=None):
-        with open("chat_formatted.json", "r") as f:
-            data = json.load(f)
-
-        for comment in tqdm(data["comments"]):
-            regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-            url = re.findall(regex, comment["message"]["body"])
-            for x in url:
-                video_id = get_id(x[0])
-                if video_id:
-                    session_id = 13
-                    login = comment["commenter"]["display_name"]
-
-                    viewer, _ = Viewer.objects.get_or_create(login=login)
-                    session = StreamSession.objects.get(id=session_id)
-                    if Video.objects.filter(
-                        session=session, video_id=video_id
-                    ).exists():
-                        tqdm.write("Video already exists in current session")
-                        break
-
-                    try:
-                        params = {
-                            "part": "snippet,contentDetails,statistics",
-                            "id": video_id,
-                            "key": YOUTUBE_API_KEY,
-                        }
-                        youtube_api_url = (
-                            f"https://youtube.googleapis.com/youtube/v3/videos"
-                        )
-                        response = requests.get(youtube_api_url, params=params)
-                        response.raise_for_status()
-                        data = response.json()
-
-                        if data["pageInfo"]["totalResults"] == 1:
-                            try:
-                                data = data["items"][0]
-                                duration = isodate.parse_duration(
-                                    data["contentDetails"]["duration"]
-                                )
-                                video = Video(
-                                    video_id=video_id,
-                                    title=data["snippet"]["title"],
-                                    viewer=viewer,
-                                    channel_name=data["snippet"]["channelTitle"],
-                                    thumbnail_url=data["snippet"]["thumbnails"][
-                                        "medium"
-                                    ]["url"],
-                                    duration=duration.total_seconds(),
-                                    view_count=data["statistics"]["viewCount"],
-                                    like_count=data["statistics"]["likeCount"],
-                                    published_at=data["snippet"]["publishedAt"],
-                                    session=session,
-                                )
-                                video.save()
-                            except:
-                                tqdm.write("Error adding vid")
-
-                    except requests.exceptions.RequestException:
-                        tqdm.write("Error while fetching YouTube API data")
 
 
 class AuthenticateUser(APIView):

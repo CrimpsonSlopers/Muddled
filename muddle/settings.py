@@ -27,11 +27,11 @@ SECRET_KEY = "django-insecure-abaabllth4ipn#eyi*6w9ra3!sjo)=6+yde^i_d-)9y5wx#sr3
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    "localhost", 
-    "3.129.228.189", 
-    "muddled.live", 
-    "www.muddled.live"
+    "127.0.0.1",
+    "localhost",
+    "3.129.228.189",
+    "muddled.live",
+    "www.muddled.live",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -94,8 +94,12 @@ WSGI_APPLICATION = "muddle.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "Muddle",
+        "USER": "admin",
+        "PASSWORD": "17Nikefree!",
+        "HOST": "muddle-db.cb5dgkhdduzz.us-west-1.rds.amazonaws.com",
+        "PORT": 3306,
     }
 }
 
@@ -142,4 +146,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 YOUTUBE_API_KEY = "AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg"
-

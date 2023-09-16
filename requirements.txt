@@ -1,7 +1,6 @@
-datetime
-django
-django-cors-headers
-djangorestframework
-isodate
-requests
-tqdm
+datetime==5.2
+django==4.2.5
+django-cors-headers==4.2.0
+djangorestframework==3.14.0
+mysqlclient==2.0.3
+requests==2.31.0
