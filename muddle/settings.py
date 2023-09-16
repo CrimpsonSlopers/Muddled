@@ -96,7 +96,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "Muddle",
-        "USER": "admin",
+        "USER": "crimpsonsloper",
         "PASSWORD": "671Cocoa!",
         "HOST": "muddled-db.coez66i7xsab.us-west-1.rds.amazonaws.com",
         "PORT": 3306,
