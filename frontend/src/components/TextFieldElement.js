@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import TextField from '@mui/material/TextField';
-import { Controller } from 'react-hook-form';
-
+import React from "react";
+import TextField from "@mui/material/TextField";
+import { Controller } from "react-hook-form";
 
 export function TextFieldElement({
     validation = {},
@@ -12,23 +11,22 @@ export function TextFieldElement({
     required,
     ...rest
 }) {
-
     if (required && !validation.required) {
-        validation.required = 'This field is required'
+        validation.required = "This field is required";
     }
 
-    if (type === 'email' && !validation.pattern) {
+    if (type === "email" && !validation.pattern) {
         validation.pattern = {
             value: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-            message: 'Please enter a valid email address'
-        }
+            message: "Please enter a valid email address",
+        };
     }
 
     return (
         <Controller
             render={({
                 field: { onChange, onBlur, value, ref },
-                fieldState: { error }
+                fieldState: { error },
             }) => (
                 <TextField
                     {...rest}
@@ -40,7 +38,13 @@ export function TextFieldElement({
                     fullWidth
                     error={!!error}
                     type={type}
-                    helperText={error ? (typeof parseError === 'function' ? parseError(error) : error.message) : rest.helperText}
+                    helperText={
+                        error
+                            ? typeof parseError === "function"
+                                ? parseError(error)
+                                : error.message
+                            : rest.helperText
+                    }
                 />
             )}
             name={name}

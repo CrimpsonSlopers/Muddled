@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
+from django.contrib.auth.models import User
 
 
 class StreamSession(models.Model):
@@ -44,9 +45,13 @@ class Video(models.Model):
     like_count = models.IntegerField(default=0)
     published_at = models.DateTimeField(default=now)
     watch_later = models.BooleanField(null=False, default=False)
+    session = models.ForeignKey(
+        StreamSession,
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
         ordering = ["-submitted_at"]
 
     def __str__(self):
-        return f"Video - {self.title} (Added by: {self.viewer})"
+        return f"{self.session.id} - {self.title} (Added by: {self.viewer})"

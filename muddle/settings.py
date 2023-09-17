@@ -106,6 +106,13 @@ DATABASES = {
     }
 }
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ]
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -148,4 +155,4 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-YOUTUBE_API_KEY = "AIzaSyBcAGB3CipbV0ywYEzWpSMpe7FJilp47Hg"
+YOUTUBE_API_KEY = "AIzaSyBDR0OdMSLxUC8H_8wtkOJLakfoUrdBwXA"

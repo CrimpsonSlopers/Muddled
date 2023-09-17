@@ -1,46 +1,53 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from 'react-hook-form';
+import { useForm } from "react-hook-form";
 
-import useAuth from "utils/auth";
+import { AuthConsumer } from "utils/auth";
 
-import Card from '@mui/material/Card';
+import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import { TextFieldElement } from 'components/TextFieldElement';
-import Cookies from 'js-cookie';
-
+import { TextFieldElement } from "components/TextFieldElement";
 
 const defaultValues = {
-    username: '',
-    password: '',
-}
+    username: "",
+    password: "",
+};
 
 export default function Login() {
     let navigate = useNavigate();
-    const auth = useAuth();
+    const { login } = AuthConsumer();
     const { handleSubmit, control } = useForm({ defaultValues });
 
     const onSubmitLogin = (data) => {
-        auth.login(data).then((response) => {
-            if (response == 200) {
-                navigate('/');
+        login(data).then((response) => {
+            if (response) {
+                navigate("/");
             }
         });
-    }
+    };
 
     return (
         <Box px={1} width="100%" height="100vh" mx="auto">
-            <Grid container spacing={1} justifyContent="center" alignItems="center" height="100%">
+            <Grid
+                container
+                spacing={1}
+                justifyContent="center"
+                alignItems="center"
+                height="100%"
+            >
                 <Grid item xs={11} sm={9} md={5} lg={4} xl={3}>
                     <Card>
                         <Box p={3}>
                             <Typography variant="h4" fontWeight="medium" pb={3}>
                                 Sign in
                             </Typography>
-                            <form onSubmit={handleSubmit(onSubmitLogin)} noValidate>
+                            <form
+                                onSubmit={handleSubmit(onSubmitLogin)}
+                                noValidate
+                            >
                                 <Box mb={2}>
                                     <TextFieldElement
                                         label="Username"
@@ -63,7 +70,12 @@ export default function Login() {
                                     />
                                 </Box>
                                 <Box mt={3} mb={1}>
-                                    <Button variant="gradient" type="submit" color="info" fullWidth>
+                                    <Button
+                                        variant="gradient"
+                                        type="submit"
+                                        color="info"
+                                        fullWidth
+                                    >
                                         sign in
                                     </Button>
                                 </Box>
@@ -73,5 +85,5 @@ export default function Login() {
                 </Grid>
             </Grid>
         </Box>
-    )
+    );
 }
