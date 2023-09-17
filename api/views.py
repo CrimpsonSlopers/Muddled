@@ -325,6 +325,7 @@ import json
 import re
 from tqdm import tqdm
 import datetime
+from dateutil import parser
 import pytz
 
 
@@ -343,10 +344,10 @@ def get_id(url):
 
 class AddArchiveFromFile(APIView):
     def get(self, requets):
-        with open("chat/[9-2-23] - Chat.json", "r", encoding="utf-8") as f:
+        with open("chat/[7-26-23] - Chat.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        dt = datetime.datetime.fromisoformat(data["video"]["created_at"])
+        dt = parser.parse(data["video"]["created_at"])
         dt_utc = dt.replace(tzinfo=utc_timezone)
         session = StreamSession.objects.create(
             user=User.objects.get(username="crimpsonsloper"), created_at=dt_utc

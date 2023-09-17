@@ -19,29 +19,7 @@ export default function Archives() {
 
     useEffect(() => {
         getSessionIds();
-        vids();
     }, []);
-
-    const vids = async () => {
-        try {
-            const response = await fetch(`/api/video`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-            if (response.status === 200) {
-                const data = await response.json();
-                setVideos(data);
-            } else {
-                throw new Error(
-                    `Unexpected response status: ${response.status}`
-                );
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
 
     const getSavedVideos = async () => {
         try {
