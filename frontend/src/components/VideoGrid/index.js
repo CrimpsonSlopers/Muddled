@@ -23,11 +23,13 @@ import {
 
 import BulletPoint from "components/BulletPoint";
 
+
+
 export default function VideoGrid({
     videos,
     archive,
-    onSaveVideo = () => {},
-    onMuteViewer = () => {},
+    onSaveVideo = () => { },
+    onMuteViewer = () => { },
 }) {
     const [selectedVideo, setSelectedVideo] = useState(null);
 
@@ -36,7 +38,7 @@ export default function VideoGrid({
 
         return (
             <Grid item key={index} xs={12} sm={6} md={4} lg={3} xxl={12 / 5}>
-                <LazyLoad width={"100%"} offset={100}>
+                <LazyLoad height={350} >
                     <Box display={"flex"} flexDirection={"column"}>
                         <Box position="relative">
                             {active ? (
