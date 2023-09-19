@@ -177,10 +177,10 @@ class VideoSubmitted(APIView):
         username = request.data.get("login")
 
         viewer, _ = Viewer.objects.get_or_create(username=username)
-        if viewer.muted:
+        """if viewer.muted:
             return Response(
                 {"error": "Viewer is muted"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            )"""
 
         session = StreamSession.objects.get(id=session_id)
         if Video.objects.filter(session=session, video_id=video_id).exists():

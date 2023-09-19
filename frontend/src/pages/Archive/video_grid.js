@@ -25,12 +25,7 @@ import BulletPoint from "components/BulletPoint";
 
 
 
-export default function VideoGrid({
-    videos,
-    archive,
-    onSaveVideo,
-    onMuteViewer,
-}) {
+export default function VideoGrid({ videos }) {
     const [selectedVideo, setSelectedVideo] = useState(null);
 
     return videos.map((video, index) => {
@@ -93,49 +88,17 @@ export default function VideoGrid({
                                 {<BulletPoint />}{" "}
                                 {formatPublished(video.published_at)} ago
                             </Typography>
-
-                            {archive ? (
-                                <Box
-                                    display="flex"
-                                    direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
-                                    <Chip
-                                        size="small"
-                                        label={`submitted by: ${video.viewer.username}`}
-                                    />
-                                </Box>
-                            ) : (
-                                <Box
-                                    display="flex"
-                                    direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
-                                    <Chip
-                                        size="small"
-                                        label={video.viewer.username}
-                                    />
-                                    <IconButton
-                                        sx={{ ml: "auto" }}
-                                        onClick={(event) => onMuteViewer(index)}
-                                    >
-                                        {video.viewer.muted ? (
-                                            <VolumeUpIcon />
-                                        ) : (
-                                            <VolumeOffIcon />
-                                        )}
-                                    </IconButton>
-                                    <IconButton onClick={(event) => onSaveVideo(index)}>
-                                        {video.watch_later ? (
-                                            <FavoriteIcon />
-                                        ) : (
-                                            <FavoriteBorderIcon />
-                                        )}
-                                    </IconButton>
-                                </Box>
-                            )}
+                            <Box
+                                display="flex"
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                            >
+                                <Chip
+                                    size="small"
+                                    label={`submitted by: ${video.viewer.username}`}
+                                />
+                            </Box>
                         </CardContent>
                     </Box>
                 </LazyLoad>

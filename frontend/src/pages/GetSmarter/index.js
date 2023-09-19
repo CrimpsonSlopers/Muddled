@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createRef } from "react";
 import Cookies from "js-cookie";
 
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Drawer from "@mui/material/Drawer";
 import Grid from "@mui/material/Grid";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
 
 import ClientStatusCard from "components/ClientStatusCard";
 import VideoGrid from "components/VideoGrid";
@@ -62,6 +58,7 @@ export default function GetSmarterPage() {
         let messages = rawIrcMessage.split("\r\n");
 
         messages.forEach((message) => {
+            console.log(message)
             let parsedMessage = parseMessage(message);
             if (parsedMessage) {
                 switch (parsedMessage.command.command) {
@@ -274,8 +271,8 @@ export default function GetSmarterPage() {
                     spacing={2}
                 >
                     <VideoGrid
-                        session={session}
                         videos={videos}
+                        archive={false}
                         onSaveVideo={saveVideo}
                         onMuteViewer={muteViewer}
                     />
