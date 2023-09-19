@@ -25,7 +25,7 @@ export default function GetSmarterPage() {
     const [session, setSession] = useState(0);
 
     useEffect(() => {
-        setClient(new WebSocket("ws://irc-ws.chat.twitch.tv:80"));
+        setClient(new WebSocket("ws://irc-ws.chat.twitch.tv:443"));
     }, []);
 
     useEffect(() => {
