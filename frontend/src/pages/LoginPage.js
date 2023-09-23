@@ -1,4 +1,5 @@
 import React from "react";
+import Cookies from 'js-cookie';
 import { useAuth } from "../hooks/useAuth";
 import { useForm } from "react-hook-form";
 
@@ -16,10 +17,24 @@ const defaultValues = {
 
 export const LoginPage = () => {
     const { login } = useAuth();
+
     const { handleSubmit, control } = useForm({ defaultValues });
 
     const onSubmitLogin = (data) => {
-        login(data);
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': Cookies.get('csrftoken'),
+            },
+            body: JSON.stringify(data)
+        };
+        const result = fetch('/api/login', requestOptions)
+            .then((response) => {
+                if (response.ok) {
+                    login(data);
+                }
+            })
     };
 
     return (
