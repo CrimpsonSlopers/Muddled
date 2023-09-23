@@ -1,7 +1,7 @@
 import isodate
 import requests
 from muddle.settings import *
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 
@@ -26,30 +26,34 @@ class AuthenticateUser(APIView):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
-class Login(APIView):
+class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, format=None):
-        try:
-            username = request.data["username"]
-            password = request.data["password"]
-            user = authenticate(username=username, password=password)
+        username = request.data["username"]
+        password = request.data["password"]
+        user = authenticate(username=username, password=password)
 
-            if user is not None:
-                login(request, user)
-                serializer = UserSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        if user is not None:
+            login(request, user)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        except:
-            return Response(
-                {"error": "error logging in user"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
-class VideoView(APIView):
+class LogoutView(APIView):
+    def get(self, request, format=None):
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
+
+
+class MutedViewersView(generics.ListCreateAPIView):
+    queryset = Viewer.objects.filter(muted=True)
+    serializer_class = ViewerSerializer
+
+
+"""class VideoView(APIView):
     def get(self, request, id=None):
         try:
             if id:
@@ -169,66 +173,6 @@ class StreamSessionView(APIView):
                 {"error": "Stream session not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
-
-class VideoSubmitted(APIView):
-    def post(self, request, format=None):
-        session_id = request.data.get("session_id")
-        video_id = request.data.get("video_id")
-        username = request.data.get("login")
-
-        viewer, _ = Viewer.objects.get_or_create(username=username)
-        """if viewer.muted:
-            return Response(
-                {"error": "Viewer is muted"}, status=status.HTTP_400_BAD_REQUEST
-            )"""
-
-        session = StreamSession.objects.get(id=session_id)
-        if Video.objects.filter(session=session, video_id=video_id).exists():
-            return Response(
-                {"error": "Video already exists in current session"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            params = {
-                "part": "snippet,contentDetails,statistics",
-                "id": video_id,
-                "key": YOUTUBE_API_KEY,
-            }
-            youtube_api_url = f"https://youtube.googleapis.com/youtube/v3/videos"
-            response = requests.get(youtube_api_url, params=params)
-            response.raise_for_status()
-            data = response.json()
-
-            if data["pageInfo"]["totalResults"] == 1:
-                data = data["items"][0]
-                duration = isodate.parse_duration(data["contentDetails"]["duration"])
-                video = Video(
-                    video_id=video_id,
-                    title=data["snippet"]["title"],
-                    viewer=viewer,
-                    channel_name=data["snippet"]["channelTitle"],
-                    thumbnail_url=data["snippet"]["thumbnails"]["medium"]["url"],
-                    duration=duration.total_seconds(),
-                    view_count=data["statistics"]["viewCount"],
-                    like_count=data["statistics"]["likeCount"],
-                    published_at=data["snippet"]["publishedAt"],
-                    session=session,
-                )
-                video.save()
-                serializer = VideoSerializer(video)
-                return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-
-            else:
-                return Response(
-                    {"error": "Video not found in YouTube API"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-        except requests.exceptions.RequestException as e:
-            return Response(
-                {"error": "Error while fetching YouTube API data"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -406,3 +350,4 @@ class AddArchiveFromFile(APIView):
 
                     except requests.exceptions.RequestException:
                         tqdm.write("Error while fetching YouTube API data")
+"""

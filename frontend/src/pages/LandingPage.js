@@ -4,10 +4,10 @@ import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { AuthConsumer } from "utils/auth";
+import { useAuth } from "../hooks/useAuth";
 
-export default function Landing() {
-    const { user } = AuthConsumer();
+export const LandingPage = () => {
+    const { user } = useAuth();
 
     return (
         <Box
@@ -38,7 +38,7 @@ export default function Landing() {
                             Muddled
                         </a>
                     </Typography>
-                    <Typography
+                    {/*<Typography
                         variant="body1"
                         component="div"
                         sx={{ marginRight: "20px", fontWeight: "bold" }}
@@ -49,7 +49,7 @@ export default function Landing() {
                         >
                             Archives
                         </a>
-                    </Typography>
+                        </Typography>*/}
                     {user != null ? (
                         <Typography
                             variant="body1"

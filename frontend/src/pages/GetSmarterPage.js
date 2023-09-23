@@ -1,4 +1,6 @@
-import React, { useState, useEffect, createRef } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import moment from 'moment';
 import Cookies from "js-cookie";
 
 import Box from "@mui/material/Box";
@@ -8,31 +10,25 @@ import Grid from "@mui/material/Grid";
 
 import ClientStatusCard from "components/ClientStatusCard";
 import VideoGrid from "components/VideoGrid";
-import { AuthConsumer } from "utils/auth";
 import parseMessage from "utils/irc_message_parser";
 import { Button, CardContent, Stack } from "@mui/material";
 
+const YOUTUBE_API_KEY = "AIzaSyBDR0OdMSLxUC8H_8wtkOJLakfoUrdBwXA";
 const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
 const MUDDLED_ACCOUNT = "crimpsonslopers";
-const youtubeRegex =
-    /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
-export default function GetSmarterPage() {
-    const { user } = AuthConsumer();
+
+export const GetSmarterPage = () => {
+    const { user } = useAuth();
     const [client, setClient] = useState(null);
     const [connected, setConnected] = useState(false);
     const [videos, setVideos] = useState([]);
-    const [session, setSession] = useState(0);
+    let vidIds = [];
 
     useEffect(() => {
         setClient(new WebSocket("wss://irc-ws.chat.twitch.tv"));
     }, []);
-
-    useEffect(() => {
-        if (session > 0) {
-            client.onmessage = (event) => handleMessage(event.data);
-        }
-    }, [session]);
 
     useEffect(() => {
         if (client) {
@@ -58,18 +54,16 @@ export default function GetSmarterPage() {
         let messages = rawIrcMessage.split("\r\n");
 
         messages.forEach((message) => {
-            console.log(message)
             let parsedMessage = parseMessage(message);
             if (parsedMessage) {
                 switch (parsedMessage.command.command) {
                     case "PRIVMSG":
-                        const match =
-                            parsedMessage.parameters.match(youtubeRegex);
-                        const id =
-                            match && match[7].length == 11 ? match[7] : [];
+                        const match = parsedMessage.parameters.match(youtubeRegex);
+                        const id = match && match[7].length == 11 ? match[7] : [];
 
-                        if (id.length > 0) {
-                            addVideo(id, parsedMessage.source["nick"]);
+                        if (id.length > 0 && !vidIds.includes(id)) {
+                            vidIds.push(id);
+                            fetchVideoData(id, parsedMessage.source["nick"]);
                         }
                         break;
 
@@ -82,10 +76,7 @@ export default function GetSmarterPage() {
                         break;
 
                     case "PING":
-                        console.log(
-                            "Responding to client with: PONG ",
-                            parsedMessage.parameters
-                        );
+                        console.log("Responding to client with: PONG ", parsedMessage.parameters);
                         client.send(`PONG ${parsedMessage.parameters}`);
                         break;
 
@@ -97,56 +88,34 @@ export default function GetSmarterPage() {
         });
     };
 
-    const addVideo = async (id, login) => {
+    const fetchVideoData = async (videoId, chatter) => {
         try {
-            const response = await fetch("/api/video-submitted", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": Cookies.get("csrftoken"),
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    session_id: session,
-                    video_id: id,
-                    login: login,
-                }),
-            });
-
-            if (response.status === 200) {
-                const data = await response.json();
-                setVideos((oldArray) => [...oldArray, data.results]);
-            } else {
-                throw new Error(
-                    `Unexpected response status: ${response.status}`
-                );
+            const response = await fetch(
+                `https://youtube.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${YOUTUBE_API_KEY}`
+            );
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const newSession = async () => {
-        try {
-            const response = await fetch(`/api/session`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": Cookies.get("csrftoken"),
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                client.send(`JOIN #${user.username}`);
-                setSession(data.id);
-                setConnected(true);
-            } else {
-                throw new Error(
-                    `Unexpected response status: ${response.status}`
-                );
+            const data = await response.json();
+            if (data.pageInfo.totalResults == 1) {
+                let video = data.items[0];
+                if (video.kind == "youtube#video") {
+                    let newVideo = {
+                        id: videoId,
+                        chatter: chatter,
+                        duration: moment.duration(video.contentDetails.duration).asSeconds(),
+                        viewCount: video.statistics.viewCount,
+                        likeCount: video.statistics.likeCount,
+                        thumbnailUrl: video.snippet.thumbnails.medium.url,
+                        channelTitle: video.snippet.channelTitle,
+                        publishedAt: video.snippet.publishedAt,
+                        title: video.snippet.title,
+                    }
+                    setVideos(oldState => [...oldState, newVideo]);
+                }
             }
-        } catch (err) {
-            console.debug(err);
+        } catch (error) {
+            console.error('Error fetching data:', error);
         }
     };
 
@@ -155,24 +124,28 @@ export default function GetSmarterPage() {
             client.send(`PART #${user.username}`);
             setConnected(false);
         } else {
-            newSession();
+            client.send(`JOIN #${user.username}`);
+            setConnected(true);
         }
-    };
-
-    const handleUpdateVideo = (videos) => {
-        setVideos(videos);
-    };
-
-    const handleSortByViews = () => {
-        const sorted = [...videos].sort((a, b) => {
-            return b.view_count - a.view_count;
-        });
-        setVideos(sorted);
     };
 
     const handleSortByDuration = () => {
         const sorted = [...videos].sort((a, b) => {
             return a.duration - b.duration;
+        });
+        setVideos(sorted);
+    };
+
+    const handleSortByViews = () => {
+        const sorted = [...videos].sort((a, b) => {
+            return b.viewCount - a.viewCount;
+        });
+        setVideos(sorted);
+    };
+
+    const handleSortByLikes = () => {
+        const sorted = [...videos].sort((a, b) => {
+            return b.likeCount - a.likeCount;
         });
         setVideos(sorted);
     };
@@ -272,7 +245,6 @@ export default function GetSmarterPage() {
                 >
                     <VideoGrid
                         videos={videos}
-                        archive={false}
                         onSaveVideo={saveVideo}
                         onMuteViewer={muteViewer}
                     />
@@ -280,10 +252,10 @@ export default function GetSmarterPage() {
             </Box>
             <Drawer
                 sx={{
-                    width: "20vw",
+                    width: "300px",
                     flexShrink: 0,
                     "& .MuiDrawer-paper": {
-                        width: "20vw",
+                        width: "300px",
                         boxSizing: "border-box",
                         border: "none",
                         backgroundColor: "transparent",
@@ -308,7 +280,7 @@ export default function GetSmarterPage() {
                                 <Button onClick={handleSortByViews}>
                                     Sort By Views
                                 </Button>
-                                <Button onClick={handleSortByDuration}>
+                                <Button onClick={handleSortByLikes}>
                                     Sort By Likes
                                 </Button>
                             </Stack>
@@ -317,6 +289,7 @@ export default function GetSmarterPage() {
                     <ClientStatusCard
                         connected={connected}
                         handleConnect={handleConnect}
+                        user={user}
                     />
                 </Stack>
             </Drawer>

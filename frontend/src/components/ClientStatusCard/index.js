@@ -10,10 +10,7 @@ import Typography from "@mui/material/Typography";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 import WifiIcon from "@mui/icons-material/Wifi";
 
-import { AuthConsumer } from "utils/auth";
-
-export default function ClientStatusCard({ connected, handleConnect }) {
-    const { user } = AuthConsumer();
+export default function ClientStatusCard({ connected, handleConnect, user }) {
 
     return (
         <Card width="100%" variant="outlined">

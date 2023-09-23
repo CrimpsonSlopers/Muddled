@@ -1,8 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import { useForm } from "react-hook-form";
-
-import { AuthConsumer } from "utils/auth";
 
 import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
@@ -16,17 +14,12 @@ const defaultValues = {
     password: "",
 };
 
-export default function Login() {
-    let navigate = useNavigate();
-    const { login } = AuthConsumer();
+export const LoginPage = () => {
+    const { login } = useAuth();
     const { handleSubmit, control } = useForm({ defaultValues });
 
     const onSubmitLogin = (data) => {
-        login(data).then((response) => {
-            if (response) {
-                navigate("/");
-            }
-        });
+        login(data);
     };
 
     return (

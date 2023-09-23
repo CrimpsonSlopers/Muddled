@@ -16,10 +16,10 @@ export const theme = createTheme({
                     textDecoration: "none !important",
                 },
                 "a.link, .link, a.link:link, .link:link, a.link:visited, .link:visited":
-                    {
-                        color: `#344767 !important`,
-                        transition: "color 150ms ease-in !important",
-                    },
+                {
+                    color: `#344767 !important`,
+                    transition: "color 150ms ease-in !important",
+                },
                 "a.link:hover, .link:hover, a.link:focus, .link:focus": {
                     color: `#1A73E8 !important`,
                 },
@@ -34,9 +34,9 @@ export const theme = createTheme({
             xs: 0,
             sm: 800,
             md: 1100,
-            lg: 1350,
-            xl: 1600,
-            xxl: 1850,
+            lg: 1400,
+            xl: 1700,
+            xxl: 2000,
         },
     },
 });

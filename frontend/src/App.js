@@ -1,30 +1,56 @@
-import React from 'react';
-import { Routes, Route } from "react-router-dom";
+import React from "react";
 
-import { AuthProvider, ProtectedRoute } from "utils/auth";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
+import {
+    Route,
+    createBrowserRouter,
+    createRoutesFromElements,
+    defer
+} from "react-router-dom";
+import { GetSmarterPage } from "./pages/GetSmarterPage";
+import { LandingPage } from "./pages/LandingPage";
+import { LoginPage } from "./pages/LoginPage";
+import { ProtectedLayout } from "./layouts/ProtectedLayout";
+import { HomeLayout } from "./layouts/HomeLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
 
-import { theme } from "./theme";
 
-import Archives from 'pages/Archive';
-import Landing from "pages/Landing";
-import Login from "pages/Login";
-import GetSmarterPage from "pages/GetSmarter";
+const getUserData = () =>
+    new Promise((resolve, reject) => {
+        fetch("/api/authenticate", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    resolve(null);
+                }
+                return response.json();
+            })
+            .then(data => {
+                resolve(data);
+            })
+            .catch(error => {
+                reject(null);
+            });
+    });
 
-export default function App() {
+export const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route
+            element={<AuthLayout />}
+            loader={() => defer({ userPromise: getUserData() })}
+        >
+            <Route path="/" element={<LandingPage />} />
 
-    return (
-        <AuthProvider>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <Routes>
-                    <Route index element={<Landing />} />
-                    <Route path="login" element={<Login />} />
-                    <Route path="archives" element={<Archives />} />
-                    <Route path="get-smarter" element={<ProtectedRoute><GetSmarterPage /></ProtectedRoute>} />
-                </Routes>
-            </ThemeProvider>
-        </AuthProvider>
+            <Route element={<HomeLayout />}>
+                <Route path="/login" element={<LoginPage />} />
+            </Route>
+
+            <Route path="/get-smarter" element={<ProtectedLayout />}>
+                <Route index element={<GetSmarterPage />} />
+            </Route>
+        </Route>
     )
-}
+)
