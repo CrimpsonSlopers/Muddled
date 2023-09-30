@@ -45,6 +45,7 @@ const vid_id = [
 export const GetSmarterPage = () => {
     const { user } = useAuth();
     const [client, setClient] = useState(null);
+    const [ready, setReady] = useState(false);
     const [connected, setConnected] = useState(false);
     const [videos, setVideos] = useState([]);
     const [filteredVideos, setFilteredVideos] = useState([]);
@@ -84,6 +85,7 @@ export const GetSmarterPage = () => {
             if (parsedMessage) {
                 switch (parsedMessage.command.command) {
                     case "PRIVMSG":
+                        console.log(parsedMessage)
                         const match = parsedMessage.parameters.match(youtubeRegex);
                         const id = match && match[7].length == 11 ? match[7] : [];
 
@@ -108,6 +110,7 @@ export const GetSmarterPage = () => {
 
                     case "001":
                         console.log("Connected and ready to join channel");
+                        setReady(true);
                         break;
                 }
             }
@@ -123,6 +126,7 @@ export const GetSmarterPage = () => {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
+            console.log(data)
             if (data.pageInfo.totalResults == 1) {
                 let video = data.items[0];
                 if (video.kind == "youtube#video") {
@@ -410,6 +414,7 @@ export const GetSmarterPage = () => {
                                     size="small"
                                     onClick={handleConnect}
                                     variant="contained"
+                                    disabled={!ready}
                                 >
                                     {connected ? "Disconnect" : "Connect"}
                                 </Button>
