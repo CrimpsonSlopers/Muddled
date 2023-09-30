@@ -95,9 +95,6 @@ export const GetSmarterPage = () => {
 
                     case "JOIN":
                         console.log(`Joining ${user.username}'s channel`);
-                        vid_id.forEach((vid) => {
-                            fetchVideoData(vid, "crimps")
-                        })
                         break;
 
                     case "PART":
