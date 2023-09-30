@@ -76,6 +76,12 @@ export const GetSmarterPage = () => {
         }
     }, [client]);
 
+    useEffect(() => {
+        if (client) {
+            client.onmessage = (event) => handleMessage(event.data);
+        }
+    }, [durationFilter]);
+
     const handleMessage = (data) => {
         let rawIrcMessage = data.trimEnd();
         let messages = rawIrcMessage.split("\r\n");
@@ -126,7 +132,7 @@ export const GetSmarterPage = () => {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            console.log(data)
+            console.log(data);
             if (data.pageInfo.totalResults == 1) {
                 let video = data.items[0];
                 if (video.kind == "youtube#video") {
@@ -144,6 +150,8 @@ export const GetSmarterPage = () => {
                         submittedAt: Date.now()
                     }
                     setVideos(oldState => [...oldState, newVideo]);
+
+                    console.log(newVideo, durationFilter)
 
                     if (durationFilter == 0) {
                         setFilteredVideos(oldState => [...oldState, newVideo]);
