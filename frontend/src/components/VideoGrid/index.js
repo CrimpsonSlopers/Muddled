@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import moment from 'moment';
-import LazyLoad from "react-lazy-load";
 
 import {
     Grid,
@@ -9,6 +7,7 @@ import {
     Typography,
     Chip,
     IconButton,
+    Stack,
 } from "@mui/material";
 
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -21,9 +20,11 @@ import {
     formatViewsLikes,
     formatDuration,
 } from "utils/video_formatters";
+import CircleIcon from '@mui/icons-material/Circle';
 
 import BulletPoint from "components/BulletPoint";
 
+import "components/VideoGrid/styles/VideoGrid.css"
 
 
 export default function VideoGrid({
@@ -41,13 +42,16 @@ export default function VideoGrid({
                 <Box display={"flex"} flexDirection={"column"}>
                     <Box position="relative">
                         {active ? (
-                            <iframe
-                                width={"100%"}
-                                src={`https://www.youtube.com/embed/${video.id}?&rel=0`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture; web-share"
-                                frameborder="0"
-                                allowfullscreen
-                            ></iframe>
+                            <div id="video">
+                                <iframe
+                                    width={"100%"}
+                                    height={"100%"}
+                                    src={`https://www.youtube.com/embed/${video.id}?&rel=0`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture; web-share"
+                                    frameborder="0"
+                                    allowfullscreen="allowfullscreen"
+                                ></iframe>
+                            </div>
                         ) : (
                             <Box onClick={() => setSelectedVideo(index)}>
                                 <Box
@@ -82,15 +86,30 @@ export default function VideoGrid({
                             {video.title}
                         </Typography>
                         <Typography variant="subtitle2">
-                            {video.channelName}
+                            <a
+                                style={{
+                                    color: "black",
+                                    textDecoration: "none",
+                                }}
+                                href={`https://www.youtube.com/channel/${video.channelId}`}
+                                target="_blank"
+                            >
+                                {video.channelTitle}
+                            </a>
                         </Typography>
-                        <Typography variant="overline">
-                            {formatViewsLikes(video.viewCount)} views{" "}
-                            {<BulletPoint />}{" "}
-                            {formatViewsLikes(video.likeCount)} likes{" "}
-                            {<BulletPoint />}{" "}
-                            {formatPublished(video.publishedAt)} ago
-                        </Typography>
+                        <Stack direction={"row"} alignContent={"center"} spacing={1}>
+                            <Typography variant="overline">
+                                {formatViewsLikes(video.viewCount)} views
+                            </Typography>
+                            <BulletPoint />
+                            <Typography variant="overline">
+                                {formatViewsLikes(video.likeCount)} likes
+                            </Typography>
+                            <BulletPoint />
+                            <Typography variant="overline">
+                                {formatPublished(video.publishedAt)} ago
+                            </Typography>
+                        </Stack>
                         <Box
                             display="flex"
                             direction="row"

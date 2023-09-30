@@ -5,11 +5,11 @@ export default function BulletPoint({ color = "black" }) {
     return (
         <Box
             component="span"
-            sx={{ 
-                display: 'inline-block', 
-                mx: '3px', 
+            sx={{
+                display: 'inline-block',
                 transform: 'scale(0.8)',
-                color: color
+                color: color,
+                pt: "6px"
             }}
         >
             •
