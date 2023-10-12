@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     # Local apps
     "api.apps.ApiConfig",
     "frontend.apps.FrontendConfig",
+    "oauth.apps.OauthConfig",
 ]
 
 

@@ -9,12 +9,12 @@ export default function parseMessage(message) {
 
     // The start index. Increments as we parse the IRC message.
 
-    let idx = 0; 
+    let idx = 0;
 
     // The raw components of the IRC message.
 
     let rawTagsComponent = null;
-    let rawSourceComponent = null; 
+    let rawSourceComponent = null;
     let rawCommandComponent = null;
     let rawParametersComponent = null;
 
@@ -40,7 +40,7 @@ export default function parseMessage(message) {
 
     let endIdx = message.indexOf(':', idx);  // Looking for the parameters part of the message.
     if (-1 == endIdx) {                      // But not all messages include the parameters part.
-        endIdx = message.length;                 
+        endIdx = message.length;
     }
 
     rawCommandComponent = message.slice(idx, endIdx).trim();
@@ -60,7 +60,7 @@ export default function parseMessage(message) {
     // we care about; we ignore some messages.
 
     if (null == parsedMessage.command) {  // Is null if it's a message we don't care about.
-        return null; 
+        return null;
     }
     else {
         if (null != rawTagsComponent) {  // The IRC message contains tags.
@@ -70,7 +70,7 @@ export default function parseMessage(message) {
         parsedMessage.source = parseSource(rawSourceComponent);
 
         parsedMessage.parameters = rawParametersComponent;
-        if (rawParametersComponent && rawParametersComponent[0] === '!') {  
+        if (rawParametersComponent && rawParametersComponent[0] === '!') {
             // The user entered a bot command in the chat window.            
             parsedMessage.command = parseParameters(rawParametersComponent, parsedMessage.command);
         }
@@ -90,8 +90,8 @@ function parseTags(tags) {
     };
 
     let dictParsedTags = {};  // Holds the parsed list of tags.
-                              // The key is the tag's name (e.g., color).
-    let parsedTags = tags.split(';'); 
+    // The key is the tag's name (e.g., color).
+    let parsedTags = tags.split(';');
 
     parsedTags.forEach(tag => {
         let parsedTag = tag.split('=');  // Tags are key/value pairs.
@@ -104,8 +104,8 @@ function parseTags(tags) {
 
                 if (tagValue) {
                     let dict = {};  // Holds the list of badge objects.
-                                    // The key is the badge's name (e.g., subscriber).
-                    let badges = tagValue.split(','); 
+                    // The key is the badge's name (e.g., subscriber).
+                    let badges = tagValue.split(',');
                     badges.forEach(pair => {
                         let badgeParts = pair.split('/');
                         dict[badgeParts[0]] = badgeParts[1];
@@ -117,23 +117,22 @@ function parseTags(tags) {
                 }
                 break;
             case 'emotes':
-                // emotes=25:0-4,12-16/1902:6-10
 
                 if (tagValue) {
                     let dictEmotes = {};  // Holds a list of emote objects.
-                                          // The key is the emote's ID.
+                    // The key is the emote's ID.
                     let emotes = tagValue.split('/');
                     emotes.forEach(emote => {
                         let emoteParts = emote.split(':');
 
                         let textPositions = [];  // The list of position objects that identify
-                                                 // the location of the emote in the chat message.
+                        // the location of the emote in the chat message.
                         let positions = emoteParts[1].split(',');
                         positions.forEach(position => {
                             let positionParts = position.split('-');
                             textPositions.push({
                                 startPosition: positionParts[0],
-                                endPosition: positionParts[1]    
+                                endPosition: positionParts[1]
                             })
                         });
 
@@ -157,13 +156,13 @@ function parseTags(tags) {
                 // If the tag is in the list of tags to ignore, ignore
                 // it; otherwise, add it.
 
-                if (tagsToIgnore.hasOwnProperty(parsedTag[0])) { 
+                if (tagsToIgnore.hasOwnProperty(parsedTag[0])) {
                     ;
                 }
                 else {
                     dictParsedTags[parsedTag[0]] = tagValue;
                 }
-        } 
+        }
     });
 
     return dictParsedTags;
@@ -201,11 +200,11 @@ function parseCommand(rawCommandComponent) {
             }
             break;
         case 'GLOBALUSERSTATE':  // Included only if you request the /commands capability.
-                                 // But it has no meaning without also including the /tags capability.
+            // But it has no meaning without also including the /tags capability.
             parsedCommand = {
                 command: commandParts[0]
             }
-            break;               
+            break;
         case 'USERSTATE':   // Included only if you request the /commands capability.
         case 'ROOMSTATE':   // But it has no meaning without also including the /tags capabilities.
             parsedCommand = {
@@ -213,7 +212,7 @@ function parseCommand(rawCommandComponent) {
                 channel: commandParts[1]
             }
             break;
-        case 'RECONNECT':  
+        case 'RECONNECT':
             console.log('The Twitch IRC server is about to terminate the connection for maintenance.')
             parsedCommand = {
                 command: commandParts[0]
@@ -265,16 +264,15 @@ function parseSource(rawSourceComponent) {
 
 function parseParameters(rawParametersComponent, command) {
     let idx = 0
-    let commandParts = rawParametersComponent.slice(idx + 1).trim(); 
+    let commandParts = rawParametersComponent.slice(idx + 1).trim();
     let paramsIdx = commandParts.indexOf(' ');
 
     if (-1 == paramsIdx) { // no parameters
-        command.botCommand = commandParts.slice(0); 
+        command.botCommand = commandParts.slice(0);
     }
     else {
-        command.botCommand = commandParts.slice(0, paramsIdx); 
+        command.botCommand = commandParts.slice(0, paramsIdx);
         command.botCommandParams = commandParts.slice(paramsIdx).trim();
-        // TODO: remove extra spaces in parameters string
     }
 
     return command;

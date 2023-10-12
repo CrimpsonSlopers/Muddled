@@ -1,7 +1,8 @@
-node_modules
-db.sqlite3
 __pycache__
-.vscode
+
+db.sqlite3
 env
 migrations
-chat
+node_modules
+
+.vscode

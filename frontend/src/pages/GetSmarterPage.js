@@ -31,16 +31,6 @@ const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
 const MUDDLED_ACCOUNT = "crimpsonslopers";
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
-const vid_id = [
-    "qbnFp80VSMU",
-    "fax3T1B",
-    "fMPTSiOuNpA",
-    "Bkq0Vhm4TK4",
-    "cfc97iswJIc",
-    "EAgnVFX2pl8",
-    "HsLLm2CBDUY",
-]
-
 
 export const GetSmarterPage = () => {
     const { user } = useAuth();
@@ -91,7 +81,6 @@ export const GetSmarterPage = () => {
             if (parsedMessage) {
                 switch (parsedMessage.command.command) {
                     case "PRIVMSG":
-                        console.log(parsedMessage)
                         const match = parsedMessage.parameters.match(youtubeRegex);
                         const id = match && match[7].length == 11 ? match[7] : [];
 
@@ -125,33 +114,35 @@ export const GetSmarterPage = () => {
 
     const fetchVideoData = async (videoId, chatter) => {
         try {
-            const response = await fetch(
-                `https://youtube.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${YOUTUBE_API_KEY}`
-            );
+            const response = await fetch(`https://youtube.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${YOUTUBE_API_KEY}`);
+
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
+
             const data = await response.json();
-            console.log(data);
-            if (data.pageInfo.totalResults == 1) {
-                let video = data.items[0];
+            const { items, pageInfo } = data;
+
+            if (pageInfo.totalResults === 1) {
+                const video = items[0];
+
                 if (video.kind == "youtube#video") {
-                    let newVideo = {
+                    const { contentDetails, statistics, snippet } = video;
+
+                    const newVideo = {
                         id: videoId,
                         chatter: chatter,
-                        duration: moment.duration(video.contentDetails.duration).asSeconds(),
-                        viewCount: video.statistics.viewCount,
-                        likeCount: video.statistics.likeCount,
-                        thumbnailUrl: video.snippet.thumbnails.medium.url,
-                        channelId: video.snippet.channelId,
-                        channelTitle: video.snippet.channelTitle,
-                        publishedAt: video.snippet.publishedAt,
-                        title: video.snippet.title,
+                        duration: moment.duration(contentDetails.duration).asSeconds(),
+                        viewCount: statistics.viewCount,
+                        likeCount: statistics.likeCount,
+                        thumbnailUrl: snippet.thumbnails.medium.url,
+                        channelId: snippet.channelId,
+                        channelTitle: snippet.channelTitle,
+                        publishedAt: snippet.publishedAt,
+                        title: snippet.title,
                         submittedAt: Date.now()
                     }
                     setVideos(oldState => [...oldState, newVideo]);
-
-                    console.log(newVideo, durationFilter)
 
                     if (durationFilter == 0) {
                         setFilteredVideos(oldState => [...oldState, newVideo]);

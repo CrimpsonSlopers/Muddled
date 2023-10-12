@@ -10,15 +10,13 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { TextFieldElement } from "components/TextFieldElement";
 
-const defaultValues = {
-    username: "",
-    password: "",
-};
+
+const CLIENT_ID = ""
+const PARAMS = `response_type=${CODE}&client_id=${CLIENT_ID}&redirect_uri=http://localhost:8000&scope=user%3Aread%3Aemail&state=${Cookies.get("csrftoken")}`
+
 
 export const LoginPage = () => {
     const { login } = useAuth();
-
-    const { handleSubmit, control } = useForm({ defaultValues });
 
     const onSubmitLogin = (data) => {
         const requestOptions = {
@@ -52,42 +50,10 @@ export const LoginPage = () => {
                             <Typography variant="h4" fontWeight="medium" pb={3}>
                                 Sign in
                             </Typography>
-                            <form
-                                onSubmit={handleSubmit(onSubmitLogin)}
-                                noValidate
-                            >
-                                <Box mb={2}>
-                                    <TextFieldElement
-                                        label="Username"
-                                        name="username"
-                                        control={control}
-                                        required
-                                        size={"small"}
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box mb={2}>
-                                    <TextFieldElement
-                                        type="password"
-                                        label="Passowrd"
-                                        name="password"
-                                        control={control}
-                                        required
-                                        size={"small"}
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box mt={3} mb={1}>
-                                    <Button
-                                        variant="gradient"
-                                        type="submit"
-                                        color="info"
-                                        fullWidth
-                                    >
-                                        sign in
-                                    </Button>
-                                </Box>
-                            </form>
+                            <Box mt={3} mb={1}>
+                                <a href={`https://id.twitch.tv/oauth2/authorize?${PARAMS}`}>Connect with Twitch</a>
+                            </Box>
+
                         </Box>
                     </Card>
                 </Grid>
