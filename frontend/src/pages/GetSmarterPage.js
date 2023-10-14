@@ -26,8 +26,8 @@ import VideoGrid from "components/VideoGrid";
 import parseMessage from "utils/irc_message_parser";
 
 
-const YOUTUBE_API_KEY = "AIzaSyBDR0OdMSLxUC8H_8wtkOJLakfoUrdBwXA";
-const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
+const YOUTUBE_API_KEY = "AIzaSyB_QdcttdchWoUbu2087r02Bhm3RxcN0DU";
+const CLIENT_ID = "hy7yxwyq9rne4k6jd83k50r9rerc2p";
 const MUDDLED_ACCOUNT = "crimpsonslopers";
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
