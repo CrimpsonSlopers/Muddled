@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { MaterialDesignContent, SnackbarProvider, useSnackbar } from 'notistack';
 import { useAuth } from "../hooks/useAuth";
-import moment, { duration } from 'moment';
-import Cookies from "js-cookie";
+import { styled } from '@mui/system';
+import moment from 'moment';
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -17,121 +18,145 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from '@mui/material/Checkbox';
 import Select from '@mui/material/Select';
 import Stack from "@mui/material/Stack";
-import TextField from '@mui/material/TextField';
 import Typography from "@mui/material/Typography";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 import WifiIcon from "@mui/icons-material/Wifi";
 
-import VideoGrid from "components/VideoGrid";
-import parseMessage from "utils/irc_message_parser";
+import VideoGrid from "./VideoGrid";
+import parseMessage from "utils/IRCMessageParser";
 
-
-const YOUTUBE_API_KEY = "AIzaSyBDR0OdMSLxUC8H_8wtkOJLakfoUrdBwXA";
-const CLIENT_ID = "fgj0gbae5f6keu4ivcyip71mi8y2xe";
-const MUDDLED_ACCOUNT = "crimpsonslopers";
+const CLIENT_ID = "2y515k4edhradk25bd9gzuutnalcw1";
+const YT_API_KEY = "AIzaSyBDR0OdMSLxUC8H_8wtkOJLakfoUrdBwXA";
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
+const urls = [
+    "t4y4mhVe2r0",
+    "PAHJUDbbT9k",
+    "jBquj9KLgII"
+]
 
-export const GetSmarterPage = () => {
+const DURATION_FILTERS = [
+    { min: 0, max: 86400 },
+    { min: 0, max: 239 },
+    { min: 240, max: 1199 },
+    { min: 1200, max: 86400 }
+]
+
+const GetSmarterApp = () => {
     const { user } = useAuth();
+    const idList = [];
+
     const [client, setClient] = useState(null);
-    const [ready, setReady] = useState(false);
+    const [readyToConnect, setReadyToConnect] = useState(false);
     const [connected, setConnected] = useState(false);
     const [videos, setVideos] = useState([]);
     const [filteredVideos, setFilteredVideos] = useState([]);
     const [durationFilter, setDurationFilter] = useState(0);
     const [checked, setChecked] = useState([true, false, false, false]);
-    let vidIds = [];
+    const [lastMessage, setLastMessage] = useState(null);
+
+    const { enqueueSnackbar } = useSnackbar();
+
 
     useEffect(() => {
-        setClient(new WebSocket("wss://irc-ws.chat.twitch.tv"));
-    }, []);
+        urls.forEach((u) => fetchVidData(u, "crimps"))
+        const connectWebSocket = () => {
+            const client = new WebSocket("wss://irc-ws.chat.twitch.tv");
 
-    useEffect(() => {
-        if (client) {
             client.onopen = () => {
                 client.send(`PASS oauth:${CLIENT_ID}`);
-                client.send(`NICK ${MUDDLED_ACCOUNT}`);
+                client.send(`NICK muddled`);
             };
 
             client.onerror = (error) => {
-                console.log("Connect Error: " + error.toString());
+                handleAddVariant("Unexpected disconnect. Attempting to reconnect", 'error');
             };
 
             client.onclose = () => {
-                console.log("The connection has been closed successfully.");
+                handleAddVariant("The connection has been closed.", 'info');
             };
 
-            client.onmessage = (event) => handleMessage(event.data);
+            client.onmessage = (event) => {
+                setLastMessage(event.data);
+            };
+
+            setClient(client);
         }
-    }, [client]);
+
+        connectWebSocket();
+
+        return () => { if (client) client.close() };
+    }, []);
+
+
+    const handleAddVariant = (message, variant) => {
+        enqueueSnackbar(message, { variant });
+    };
+
 
     useEffect(() => {
-        if (client) {
-            client.onmessage = (event) => handleMessage(event.data);
-        }
-    }, [durationFilter]);
+        if (lastMessage) { handleMessage(lastMessage) }
+    }, [lastMessage]);
+
 
     const handleMessage = (data) => {
         let rawIrcMessage = data.trimEnd();
         let messages = rawIrcMessage.split("\r\n");
 
         messages.forEach((message) => {
-            let parsedMessage = parseMessage(message);
-            if (parsedMessage) {
-                switch (parsedMessage.command.command) {
-                    case "PRIVMSG":
-                        const match = parsedMessage.parameters.match(youtubeRegex);
-                        const id = match && match[7].length == 11 ? match[7] : [];
+            try {
+                let parsedMessage = parseMessage(message);
+                if (parsedMessage) {
+                    switch (parsedMessage.command.command) {
+                        case "PRIVMSG":
+                            const match = parsedMessage.parameters.match(youtubeRegex);
+                            const id = match && match[7].length == 11 ? match[7] : [];
 
-                        if (id.length > 0 && !vidIds.includes(id)) {
-                            vidIds.push(id);
-                            fetchVideoData(id, parsedMessage.source["nick"]);
-                        }
-                        break;
+                            if (id.length > 0 && !idList.includes(id)) {
+                                idList.push(id);
+                                fetchVidData(id, parsedMessage.source["nick"]);
+                            }
+                            break;
 
-                    case "JOIN":
-                        console.log(`Joining ${user.username}'s channel`);
-                        break;
+                        case "JOIN":
+                            handleAddVariant(`Successfully joined ${user.username}'s chat.`, 'success');
+                            setConnected(true);
+                            break;
 
-                    case "PART":
-                        console.log(`Leaving ${user.username}'s channel`);
-                        break;
+                        case "PART":
+                            handleAddVariant("The connection was forcefully closed.", 'warning');
+                            setConnected(false);
+                            break;
 
-                    case "PING":
-                        console.log("Responding to client with: PONG ", parsedMessage.parameters);
-                        client.send(`PONG ${parsedMessage.parameters}`);
-                        break;
+                        case "PING":
+                            client.send(`PONG ${parsedMessage.parameters}`);
+                            handleAddVariant("Playing PING PONG with a websocket.", "info");
+                            break;
 
-                    case "001":
-                        console.log("Connected and ready to join channel");
-                        setReady(true);
-                        break;
+                        case "001":
+                            setReadyToConnect(true);
+                            handleAddVariant("Connected to Twitch's server.", "info");
+                            break;
+                    }
                 }
+            } catch (err) {
+                console.log("ERROR PARSING MESSAGE: ", err);
             }
         });
     };
 
-    const fetchVideoData = async (videoId, chatter) => {
+    const fetchVidData = async (videoId, submittedBy) => {
         try {
-            const response = await fetch(`https://youtube.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${YOUTUBE_API_KEY}`);
+            const response = await fetch(`https://youtube.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${YT_API_KEY}`);
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+            if (response.ok) {
+                const data = await response.json();
+                const { items, pageInfo } = data;
 
-            const data = await response.json();
-            const { items, pageInfo } = data;
-
-            if (pageInfo.totalResults === 1) {
-                const video = items[0];
-
-                if (video.kind == "youtube#video") {
-                    const { contentDetails, statistics, snippet } = video;
-
+                if (pageInfo.totalResults === 1 && items[0].kind == "youtube#video") {
+                    const { contentDetails, statistics, snippet } = items[0];
                     const newVideo = {
                         id: videoId,
-                        chatter: chatter,
                         duration: moment.duration(contentDetails.duration).asSeconds(),
                         viewCount: statistics.viewCount,
                         likeCount: statistics.likeCount,
@@ -140,24 +165,58 @@ export const GetSmarterPage = () => {
                         channelTitle: snippet.channelTitle,
                         publishedAt: snippet.publishedAt,
                         title: snippet.title,
-                        submittedAt: Date.now()
+                        submittedAt: Date.now(),
+                        submittedBy: submittedBy,
                     }
-                    setVideos(oldState => [...oldState, newVideo]);
 
-                    if (durationFilter == 0) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
-                    } else if (durationFilter == 1 && newVideo.duration < 240) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
-                    } else if (durationFilter == 2 && newVideo.duration >= 240 && newVideo.duration < 1200) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
-                    } else if (durationFilter == 3 && newVideo.duration >= 1200) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
+                    let filter = DURATION_FILTERS[durationFilter];
+                    if (newVideo.duration > filter.min && newVideo.duration <= filter.max) {
+                        setFilteredVideos(vids => [...vids, newVideo]);
+                    } else {
+                        setVideos(vids => [...vids, newVideo])
                     }
                 }
             }
         } catch (error) {
-            console.error('Error fetching data:', error);
+            switch (error.code) {
+                case 403:
+                    handleAddVariant(`${error.code}: ${error.message}`, "error");
+                    break;
+
+                case 400:
+                    handleAddVariant(`${error.code}: ${error.message}`, "warning");
+                    break;
+            }
         }
+
+    };
+
+    const handleFilterChange = (event) => {
+        setDurationFilter(event.target.value);
+        let tempVidList = [...videos, ...filteredVideos];
+        switch (event.target.value) {
+            case 0:
+                setFilteredVideos(tempVidList);
+                setVideos([])
+                break;
+
+            case 1:
+                setFilteredVideos(tempVidList.filter(video => video.duration < 240));
+                setVideos(tempVidList.filter(video => video.duration >= 240))
+                break;
+
+            case 2:
+                setFilteredVideos(tempVidList.filter(video => video.duration >= 240 && video.duration < 1200));
+                setVideos(tempVidList.filter(video => video.duration < 240 && video.duration >= 1200))
+                break;
+
+            case 3:
+                setFilteredVideos(tempVidList.filter(video => video.duration >= 1200));
+                setVideos(tempVidList.filter(video => video.duration < 1200));
+                break;
+        }
+        setChecked([true, false, false, false]);
+        setFilteredVideos([...filteredVideos].sort((a, b) => a.submittedAt - b.submittedAt))
     };
 
     const handleConnect = () => {
@@ -166,138 +225,33 @@ export const GetSmarterPage = () => {
         } else {
             client.send(`JOIN #${user.username}`);
         }
-        setConnected(!connected);
     };
 
-    const handleDurationFilterChange = (event) => {
-        setDurationFilter(event.target.value);
-        switch (event.target.value) {
+
+    const handleSort = (event, sortBy) => {
+        const newChecked = [false, false, false, false];
+        newChecked[sortBy] = event.target.checked;
+        setChecked(newChecked);
+
+        let sorted;
+        switch (sortBy) {
             case 0:
-                setFilteredVideos(videos);
+                sorted = [...filteredVideos].sort((a, b) => a.submittedAt - b.submittedAt);
                 break;
-
             case 1:
-                setFilteredVideos(videos.filter(video => video.duration < 240));
+                sorted = [...filteredVideos].sort((a, b) => a.duration - b.duration);
                 break;
-
             case 2:
-                setFilteredVideos(videos.filter(video => video.duration >= 240 && video.duration < 1200));
+                sorted = [...filteredVideos].sort((a, b) => b.viewCount - a.viewCount);
                 break;
-
             case 3:
-                setFilteredVideos(videos.filter(video => video.duration >= 1200));
+                sorted = [...filteredVideos].sort((a, b) => b.likeCount - a.likeCount);
                 break;
+            default:
+                sorted = [...filteredVideos];
         }
-
-    };
-
-    const saveVideo = async (index) => {
-        try {
-            const video = { ...videos[index] };
-            const response = await fetch(`/api/video/${video.id}`, {
-                method: "PATCH",
-                headers: {
-                    "X-CSRFToken": Cookies.get("csrftoken"),
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ watch_later: !video.watch_later }),
-            });
-
-            if (response.status === 200) {
-                const data = await response.json();
-                const newVideos = videos.map((video) => {
-                    if (video.id === data.results.id) {
-                        const updatedVideo = {
-                            ...video,
-                            watch_later: data.results.watch_later,
-                        };
-                        return updatedVideo;
-                    }
-                    return video;
-                });
-                setVideos(newVideos);
-            } else {
-                throw new Error(
-                    `Unexpected response status: ${response.status}`
-                );
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const muteViewer = async (index) => {
-        try {
-            const viewer = { ...videos[index].viewer };
-            const response = await fetch(`/api/viewer/${viewer.username}`, {
-                method: "PUT",
-                headers: {
-                    "X-CSRFToken": Cookies.get("csrftoken"),
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...viewer,
-                    muted: !viewer.muted,
-                }),
-            });
-
-            if (response.status === 200) {
-                const data = await response.json();
-                const newVideos = videos.map((video) => {
-                    if (video.viewer.username === data.results.username) {
-                        const updatedVideo = {
-                            ...video,
-                            viewer: data.results,
-                        };
-
-                        return updatedVideo;
-                    }
-
-                    return video;
-                });
-
-                setVideos(newVideos);
-            } else {
-                throw new Error(
-                    `Unexpected response status: ${response.status}`
-                );
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const handleChange1 = (event) => {
-        setChecked([event.target.checked, false, false, false]);
-        const sorted = [...filteredVideos].sort((a, b) => {
-            return a.submittedAt - b.submittedAt;
-        });
         setFilteredVideos(sorted);
-    };
-
-    const handleChange2 = (event) => {
-        setChecked([false, event.target.checked, false, false]);
-        const sorted = [...filteredVideos].sort((a, b) => {
-            return a.duration - b.duration;
-        });
-        setFilteredVideos(sorted);
-    };
-
-    const handleChange3 = (event) => {
-        setChecked([false, false, event.target.checked, false]);
-        const sorted = [...filteredVideos].sort((a, b) => {
-            return b.viewCount - a.viewCount;
-        });
-        setFilteredVideos(sorted);
-    };
-
-    const handleChange4 = (event) => {
-        setChecked([false, false, false, event.target.checked]);
-        const sorted = [...filteredVideos].sort((a, b) => {
-            return b.likeCount - a.likeCount;
-        });
-        setFilteredVideos(sorted);
-    };
+    }
 
     return (
         <Box sx={{ display: "flex" }}>
@@ -314,25 +268,21 @@ export const GetSmarterPage = () => {
                     container
                     justifyContent={"center"}
                     overflow={"auto"}
-                    spacing={2}
+                    spacing={3}
                 >
-                    <VideoGrid
-                        videos={filteredVideos}
-                        onSaveVideo={saveVideo}
-                        onMuteViewer={muteViewer}
-                    />
+                    <VideoGrid videos={filteredVideos} />
                 </Grid>
             </Box>
             <Drawer
                 sx={{
-                    width: "320px",
+                    width: "25vw",
                     flexShrink: 0,
                     "& .MuiDrawer-paper": {
-                        width: "320px",
+                        width: "25vw",
                         boxSizing: "border-box",
                         border: "none",
                         backgroundColor: "transparent",
-                        p: 2,
+                        padding: 2,
                     },
                 }}
                 variant="permanent"
@@ -345,32 +295,79 @@ export const GetSmarterPage = () => {
                     height={"100%"}
                 >
                     <Card width="100%" variant="outlined">
-                        <CardContent>
-                            <Stack direction={"column"} spacing={2}>
-                                <Typography variant="body1" fontWeight={"bold"}>
+                        <CardContent >
+                            <Stack
+                                direction={"column"}
+                                spacing={2}
+                                justifyContent="center"
+                                alignItems="stretch"
+                            >
+                                <Typography variant="subtitle1" fontWeight={"bold"} color="#0E212E">
                                     sort by
                                 </Typography>
-                                <Stack direction={"row"} spacing={2}>
+                                <Stack
+                                    direction={"row"}
+                                    width="100%"
+                                    justifyContent="space-around"
+                                    alignItems="center"
+                                >
                                     <FormGroup>
-                                        <FormControlLabel control={<Checkbox checked={checked[0]} onChange={handleChange1} />} label="default" />
-                                        <FormControlLabel control={<Checkbox checked={checked[1]} onChange={handleChange2} />} label="duration" />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="large"
+                                                    checked={checked[0]}
+                                                    onChange={(e) => handleSort(e, 0)}
+                                                />
+                                            }
+                                            label={<Typography color="#000000">default</Typography>}
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="large"
+                                                    checked={checked[1]}
+                                                    onChange={(e) => handleSort(e, 1)}
+                                                />
+                                            }
+                                            label={<Typography color="#000000">duration</Typography>}
+                                        />
                                     </FormGroup>
                                     <FormGroup>
-                                        <FormControlLabel control={<Checkbox checked={checked[2]} onChange={handleChange3} />} label="views" />
-                                        <FormControlLabel control={<Checkbox checked={checked[3]} onChange={handleChange4} />} label="likes" />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="large"
+                                                    checked={checked[2]}
+                                                    onChange={(e) => handleSort(e, 2)}
+                                                />
+                                            }
+                                            label={<Typography color="#000000">view count</Typography>}
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="large"
+                                                    checked={checked[3]}
+                                                    onChange={(e) => handleSort(e, 3)}
+                                                />
+                                            }
+                                            label={<Typography color="#000000">like count</Typography>}
+                                        />
                                     </FormGroup>
                                 </Stack>
-                                <Typography variant="body1" fontWeight={"bold"}>
+                                <Typography variant="subtitle1" fontWeight={"bold"} color="#0E212E">
                                     filter
                                 </Typography>
-                                <FormControl size="small">
-                                    <InputLabel id="duration-select-label">Filter</InputLabel>
+                                <FormControl>
+                                    <InputLabel id="duration-select-label" sx={{ color: "#0E212E" }}>Filter</InputLabel>
                                     <Select
                                         labelId="duration-select-label"
                                         id="duration-select"
                                         value={durationFilter}
                                         label="Filter"
-                                        onChange={handleDurationFilterChange}
+                                        onChange={handleFilterChange}
+                                        size="large"
                                     >
                                         <MenuItem value={0}><em>All</em></MenuItem>
                                         <MenuItem value={1}>under 4 minutes</MenuItem>
@@ -387,19 +384,23 @@ export const GetSmarterPage = () => {
                                 direction="row"
                                 justifyContent="flex-start"
                                 alignItems="center"
-                                spacing={1}
-                                pb={3}
+                                spacing={2}
+                                marginBottom={"32px"}
                             >
-                                {connected ? (
-                                    <WifiIcon
-                                        sx={{ color: "action.active", mr: 1, my: 0.5 }}
-                                    />
+                                {!readyToConnect ? (
+                                    <WifiOffIcon sx={{
+                                        color: "#96a2b8",
+                                        mr: 1, my: 0.5,
+                                        fontSize: "40px"
+                                    }} />
                                 ) : (
-                                    <WifiOffIcon
-                                        sx={{ color: "action.active", mr: 1, my: 0.5 }}
-                                    />
+                                    <WifiIcon sx={{
+                                        color: !connected ? "#96a2b8" : "#2152ff",
+                                        mr: 1, my: 0.5,
+                                        fontSize: "40px"
+                                    }} />
                                 )}
-                                <Typography variant="body1" fontWeight={"bold"}>
+                                <Typography variant="h4" fontWeight={"bold"} color={"#0E212E"}>
                                     {user.username}
                                 </Typography>
                             </Stack>
@@ -410,10 +411,11 @@ export const GetSmarterPage = () => {
                                 display="flex"
                             >
                                 <Button
-                                    size="small"
+                                    fullWidth
+                                    size="large"
                                     onClick={handleConnect}
                                     variant="contained"
-                                    disabled={!ready}
+                                    disabled={!readyToConnect}
                                 >
                                     {connected ? "Disconnect" : "Connect"}
                                 </Button>
@@ -422,6 +424,48 @@ export const GetSmarterPage = () => {
                     </Card>
                 </Stack>
             </Drawer>
-        </Box>
+        </Box >
     );
 }
+
+
+const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
+    fontSize: "16px",
+    fontFamily: "Lexend",
+    '&.notistack-MuiContent-default': {
+        backgroundColor: '#313131',
+    },
+    '&.notistack-MuiContent-success': {
+        backgroundColor: '#2D7738',
+    },
+    '&.notistack-MuiContent-error': {
+        backgroundColor: '#970C0C',
+    },
+    '&.notistack-MuiContent-warning': {
+        backgroundColor: '#ff9800',
+    },
+    '&.notistack-MuiContent-info': {
+        backgroundColor: '#2196f3',
+    },
+}));
+
+
+const GetSmarterPage = () => {
+    return (
+        <SnackbarProvider
+            maxSnack={3}
+            Components={{
+                default: StyledMaterialDesignContent,
+                success: StyledMaterialDesignContent,
+                error: StyledMaterialDesignContent,
+                warning: StyledMaterialDesignContent,
+                info: StyledMaterialDesignContent
+            }}
+            autoHideDuration={5000}
+        >
+            <GetSmarterApp />
+        </SnackbarProvider>
+    );
+}
+
+export default GetSmarterPage;

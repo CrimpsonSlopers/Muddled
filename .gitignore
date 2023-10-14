@@ -6,3 +6,5 @@ migrations
 node_modules
 
 .vscode
+
+.env

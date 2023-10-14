@@ -1,42 +1,23 @@
 import React from "react";
 import { createTheme } from "@mui/material/styles";
+import typography from "./base/typography";
+import globals from "./base/globals";
+import input from "./components/form/input";
+import inputLabel from "./components/form/inputLabel";
+import inputOutlined from "./components/form/inputOutlined";
+import textField from "./components/form/textField";
 
 export const theme = createTheme({
+    typography: { ...typography },
     components: {
         MuiCssBaseline: {
             styleOverrides: {
-                html: {
-                    scrollBehavior: "smooth",
-                },
-                "*, *::before, *::after": {
-                    margin: 0,
-                    padding: 0,
-                },
-                "a, a:link, a:visited": {
-                    textDecoration: "none !important",
-                },
-                "a.link, .link, a.link:link, .link:link, a.link:visited, .link:visited":
-                {
-                    color: `#344767 !important`,
-                    transition: "color 150ms ease-in !important",
-                },
-                "a.link:hover, .link:hover, a.link:focus, .link:focus": {
-                    color: `#1A73E8 !important`,
-                },
+                ...globals,
             },
         },
-    },
-    typography: {
-        fontFamily: "Lexend",
-    },
-    breakpoints: {
-        values: {
-            xs: 0,
-            sm: 800,
-            md: 1100,
-            lg: 1400,
-            xl: 1700,
-            xxl: 2000,
-        },
-    },
+        MuiInput: { ...input },
+        MuiInputLabel: { ...inputLabel },
+        MuiOutlinedInput: { ...inputOutlined },
+        MuiTextField: { ...textField },
+    }
 });

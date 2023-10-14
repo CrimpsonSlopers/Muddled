@@ -1,56 +1,38 @@
-import isodate
 import requests
-from muddle.settings import *
-from django.contrib.auth import authenticate, login, logout
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count
+
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
 
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
-from api.models import *
-from api.serializers import *
-from muddle.settings import *
+from oauth.serializers import ProfileSerializer, UserWithProfileSerializer
+from oauth.models import Profile
+import time
+
+CALLBACK_URL = "http://localhost:8000/callback/"
 
 
-class AuthenticateUser(APIView):
-    permission_classes = [AllowAny]
+class UserView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-    def get(self, request, format=None):
+    def get(self, request):
+        serializer = UserWithProfileSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TwitchAuthView(APIView):
+    def get(self, request):
         if request.user.is_authenticated:
-            serializer = UserSerializer(request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return HttpResponseRedirect("/")
 
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        authorization_url = "https://id.twitch.tv/oauth2/authorize"
+        twitch_auth_url = f"{authorization_url}?client_id={settings.TWITCH_CLIENT_ID}&redirect_uri={CALLBACK_URL}&response_type=code&scope=user_read"
 
-
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request, format=None):
-        username = request.data["username"]
-        password = request.data["password"]
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            serializer = UserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-
-class LogoutView(APIView):
-    def get(self, request, format=None):
-        logout(request)
-        return Response(status=status.HTTP_200_OK)
-
-
-class MutedViewersView(generics.ListCreateAPIView):
-    queryset = Viewer.objects.filter(muted=True)
-    serializer_class = ViewerSerializer
+        return HttpResponseRedirect(twitch_auth_url)
 
 
 """class VideoView(APIView):

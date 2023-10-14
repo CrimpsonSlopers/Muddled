@@ -5,6 +5,7 @@
 html,
 body {
     min-height: 100%;
+    font-size: 16px;
     background: #f1f1f6;
     margin: 0;
     color: #000;
@@ -17,50 +18,10 @@ body {
     height: 100%;
     left: 0;
     right: 0;
+    color: #0E212E;
 }
 
 #app {
     display: flex;
-}
-
-@media (min-width: 800px) {
-    html {
-        font-size: 14px;
-    }
-
-    h1 {
-        font-size: 1.5rem;
-    }
-
-    p {
-        font-size: 0.85rem;
-    }
-}
-
-@media (min-width: 1200px) {
-    html {
-        font-size: 15px;
-    }
-
-    h1 {
-        font-size: 2rem;
-    }
-
-    p {
-        font-size: 1.2rem;
-    }
-}
-
-@media (min-width: 1600px) {
-    html {
-        font-size: 16px;
-    }
-
-    h1 {
-        font-size: 2.5rem;
-    }
-
-    p {
-        font-size: 1.5rem;
-    }
+    color: #0E212E;
 }

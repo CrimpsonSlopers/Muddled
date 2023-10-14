@@ -1,11 +1,12 @@
 // Soft UI Dashboard React Base Styles
-import colors from "theme/base/colors";
+import colors from "./colors"
 
 const { info, dark } = colors;
 
 const globals = {
     html: {
         scrollBehavior: "smooth",
+        color: "#0E212E"
     },
     "*, *::before, *::after": {
         margin: 0,
@@ -15,11 +16,11 @@ const globals = {
         textDecoration: "none !important",
     },
     "a.link, .link, a.link:link, .link:link, a.link:visited, .link:visited": {
-        color: `${dark.main} !important`,
+        color: `#0E212E !important`,
         transition: "color 150ms ease-in !important",
     },
     "a.link:hover, .link:hover, a.link:focus, .link:focus": {
-        color: `${info.main} !important`,
+        color: `#0E212E !important`,
     },
     "svg": {
         textAlign: "center",

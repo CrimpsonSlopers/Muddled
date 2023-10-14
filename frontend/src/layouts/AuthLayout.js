@@ -1,22 +1,22 @@
 import React, { Suspense } from "react";
 import { useLoaderData, useOutlet, Await } from "react-router-dom";
-import LinearProgress from "@mui/material/LinearProgress";
-import Alert from "@mui/material/Alert";
 import { AuthProvider } from "../hooks/useAuth";
+
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
+
 
 export const AuthLayout = () => {
     const outlet = useOutlet();
 
-    const { userPromise } = useLoaderData();
+    const { userData } = useLoaderData();
 
     return (
-        <Suspense fallback={<LinearProgress />}>
+        <Suspense fallback={<CircularProgress />}>
             <Await
-                resolve={userPromise}
+                resolve={userData}
                 errorElement={<Alert severity="error">Something went wrong!</Alert>}
-                children={(user) => (
-                    <AuthProvider userData={user}>{outlet}</AuthProvider>
-                )}
+                children={(user) => (<AuthProvider userData={user}>{outlet}</AuthProvider>)}
             />
         </Suspense>
     );

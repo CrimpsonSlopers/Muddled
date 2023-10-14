@@ -6,50 +6,45 @@ import {
     createRoutesFromElements,
     defer
 } from "react-router-dom";
-import { GetSmarterPage } from "./pages/GetSmarterPage";
+import GetSmarterPage from "./pages/GetSmarterPage";
 import { LandingPage } from "./pages/LandingPage";
-import { LoginPage } from "./pages/LoginPage";
+import { CallbackPage } from "./pages/CallbackPage";
+import ArchiveLayout, { ArchivePage } from "./pages/ArchivePage";
+
 import { ProtectedLayout } from "./layouts/ProtectedLayout";
-import { HomeLayout } from "./layouts/HomeLayout";
 import { AuthLayout } from "./layouts/AuthLayout";
+import { AnonymousLayout } from "./layouts/AnonymousLayout";
 
 
-const getUserData = () =>
-    new Promise((resolve, reject) => {
-        fetch("/api/authenticate", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-            .then(response => {
-                if (!response.ok) {
-                    resolve(null);
-                }
-                return response.json();
-            })
-            .then(data => {
-                resolve(data);
-            })
-            .catch(error => {
-                reject(null);
-            });
+export async function rootLoader() {
+    let token = JSON.parse(localStorage.getItem("token"))
+    const response = await fetch(`/api/user/`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        }
     });
+    const userData = await response.json();
+    return { userData }
+};
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
         <Route
             element={<AuthLayout />}
-            loader={() => defer({ userPromise: getUserData() })}
+            loader={rootLoader}
         >
-            <Route path="/" element={<LandingPage />} />
-
-            <Route element={<HomeLayout />}>
-                <Route path="/login" element={<LoginPage />} />
+            <Route element={<AnonymousLayout />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/archives" element={<ArchiveLayout />}>
+                    <Route path=":channelName" element={<ArchivePage />} />
+                </Route>
+                <Route path="/callback" element={<CallbackPage />} />
             </Route>
 
-            <Route path="/get-smarter" element={<ProtectedLayout />}>
-                <Route index element={<GetSmarterPage />} />
+            <Route element={<ProtectedLayout />}>
+                <Route path="/get-smarter" element={<GetSmarterPage />} />
             </Route>
         </Route>
     )

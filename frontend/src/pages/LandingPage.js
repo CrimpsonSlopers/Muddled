@@ -1,13 +1,21 @@
-import React from "react";
-
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate, Navigate } from "react-router-dom";
+
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { Button } from "@mui/material";
+
 
 export const LandingPage = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+
+    let isAuthenticated;
+    if (user?.hasOwnProperty('username')) {
+        isAuthenticated = true
+    } else {
+        isAuthenticated = false
+    }
 
     return (
         <Box
@@ -20,55 +28,137 @@ export const LandingPage = () => {
                 height: "100vh",
             }}
         >
-            <AppBar sx={{ background: "transparent", boxShadow: "none" }}>
-                <Toolbar>
+            <Box sx={{
+                padding: 3,
+                minHeight: "128px",
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center"
+            }}>
+                {user ? (
                     <Typography
-                        variant="h5"
+                        variant="h2"
                         component="div"
                         sx={{ flexGrow: 1 }}
                     >
                         <a
-                            href="/"
                             style={{
                                 color: "white",
                                 textDecoration: "none",
                                 fontWeight: "bold",
                             }}
                         >
-                            Muddled
+                            {user.profile.display_name}
                         </a>
                     </Typography>
-                    {/*<Typography
-                        variant="body1"
+                ) : (
+                    <Typography
+                        variant="h2"
                         component="div"
-                        sx={{ marginRight: "20px", fontWeight: "bold" }}
+                        sx={{ flexGrow: 1 }}
                     >
                         <a
-                            href="/archives"
-                            style={{ color: "white", textDecoration: "none" }}
+                            style={{
+                                color: "white",
+                                textDecoration: "none",
+                                fontWeight: "bold",
+                            }}
                         >
-                            Archives
+                            MUDDLED
                         </a>
-                        </Typography>*/}
-                    {user != null ? (
+                    </Typography>
+                )}
+                {user ? (
+                    <Button>
                         <Typography
-                            variant="body1"
+                            variant="h5"
                             component="div"
-                            sx={{ marginRight: "20px", fontWeight: "bold" }}
+                            marginRight={"48px"}
                         >
                             <a
-                                href="/get-smarter"
+                                href={"/admin/"}
                                 style={{
                                     color: "white",
                                     textDecoration: "none",
-                                }}
-                            >
-                                Get Smarter
+                                    fontWeight: "bold",
+                                    textTransform: "uppercase"
+                                }} >
+                                ADMIN
                             </a>
                         </Typography>
-                    ) : null}
-                </Toolbar>
-            </AppBar>
+                    </Button>
+                ) : (null)}
+                <Typography
+                    variant="h5"
+                    component="div"
+                    marginRight={"48px"}
+                >
+                    <a
+                        href="/archives"
+                        style={{
+                            color: "white",
+                            textDecoration: "none",
+                            fontWeight: "bold",
+                            textTransform: "uppercase"
+                        }} >
+                        Archives
+                    </a>
+                </Typography>
+                {user ? (
+                    <Typography
+                        variant="h5"
+                        component="div"
+                        marginRight={"48px"}
+                    >
+                        <a
+                            href="/get-smarter"
+                            style={{
+                                color: "white",
+                                textDecoration: "none",
+                                fontWeight: "bold",
+                                textTransform: "uppercase"
+                            }}
+                        >
+                            Get Smarter
+                        </a>
+                    </Typography>
+                ) : (null)}
+                {user ? (
+                    <Button onClick={logout}>
+                        <Typography
+                            variant="h5"
+                            component="div"
+                            marginRight={"48px"}
+                        >
+                            <a
+                                style={{
+                                    color: "white",
+                                    textDecoration: "none",
+                                    fontWeight: "bold",
+                                }} >
+                                LOGOUT
+                            </a>
+                        </Typography>
+                    </Button>
+                ) : (
+                    <Typography
+                        variant="h5"
+                        component="div"
+                        marginRight={"48px"}
+                    >
+                        <a
+                            href="/oauth/auth/"
+                            style={{
+                                color: "white",
+                                textDecoration: "none",
+                                fontWeight: "bold",
+                            }} >
+                            LOGIN
+                        </a>
+                    </Typography>
+                )}
+            </Box>
         </Box>
     );
 }

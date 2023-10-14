@@ -1,18 +1,52 @@
 from django.contrib import admin
-from api.models import Video, Viewer, StreamSession
+from api.models import Video, Archive, Thumbnail, Save
 from django.contrib import admin
 
 
-@admin.register(Viewer)
-class ViewerAdmin(admin.ModelAdmin):
-    model = Viewer
+@admin.register(Thumbnail)
+class ThumbnailAdmin(admin.ModelAdmin):
+    model = Thumbnail
 
-    list_display = ("username", "muted")
-    list_filter = ("muted",)
-    search_fields = ("username", "muted")
-    ordering = ("username",)
-    list_editable = ("muted",)
+    list_display = (
+        "url",
+        "key",
+        "height",
+        "width",
+    )
+    search_fields = ("key", "url")
+    ordering = ("key",)
 
 
-admin.site.register(Video)
-admin.site.register(StreamSession)
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    model = Video
+
+    list_display = (
+        "video_id",
+        "published_at",
+        "title",
+        "channel_title",
+        "duration",
+        "view_count",
+        "like_count",
+        "submitted_by",
+        "submitted_at",
+    )
+    search_fields = ("title", "submitted_by")
+    ordering = ("submitted_at",)
+
+
+@admin.register(Archive)
+class ArchiveAdmin(admin.ModelAdmin):
+    model = Archive
+
+    list_display = (
+        "streamer",
+        "created_at",
+    )
+    search_fields = ("streamer", "submitted_by")
+    ordering = ("streamer",)
+    list_editable = ("created_at",)
+
+
+admin.site.register(Save)
