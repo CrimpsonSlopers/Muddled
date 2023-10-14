@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import moment, { duration } from 'moment';
+import moment, { duration } from "moment";
 import Cookies from "js-cookie";
 
 import Box from "@mui/material/Box";
@@ -9,15 +9,15 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Drawer from "@mui/material/Drawer";
 import Grid from "@mui/material/Grid";
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormGroup from '@mui/material/FormGroup';
-import FormControl from '@mui/material/FormControl';
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormGroup from "@mui/material/FormGroup";
+import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from '@mui/material/Checkbox';
-import Select from '@mui/material/Select';
+import Checkbox from "@mui/material/Checkbox";
+import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
-import TextField from '@mui/material/TextField';
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 import WifiIcon from "@mui/icons-material/Wifi";
@@ -25,22 +25,11 @@ import WifiIcon from "@mui/icons-material/Wifi";
 import VideoGrid from "components/VideoGrid";
 import parseMessage from "utils/irc_message_parser";
 
-
 const YOUTUBE_API_KEY = "AIzaSyB_QdcttdchWoUbu2087r02Bhm3RxcN0DU";
 const CLIENT_ID = "hy7yxwyq9rne4k6jd83k50r9rerc2p";
 const MUDDLED_ACCOUNT = "crimpsonslopers";
-const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-
-const vid_id = [
-    "qbnFp80VSMU",
-    "fax3T1B",
-    "fMPTSiOuNpA",
-    "Bkq0Vhm4TK4",
-    "cfc97iswJIc",
-    "EAgnVFX2pl8",
-    "HsLLm2CBDUY",
-]
-
+const youtubeRegex =
+    /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
 export const GetSmarterPage = () => {
     const { user } = useAuth();
@@ -91,9 +80,11 @@ export const GetSmarterPage = () => {
             if (parsedMessage) {
                 switch (parsedMessage.command.command) {
                     case "PRIVMSG":
-                        console.log(parsedMessage)
-                        const match = parsedMessage.parameters.match(youtubeRegex);
-                        const id = match && match[7].length == 11 ? match[7] : [];
+                        console.log(parsedMessage);
+                        const match =
+                            parsedMessage.parameters.match(youtubeRegex);
+                        const id =
+                            match && match[7].length == 11 ? match[7] : [];
 
                         if (id.length > 0 && !vidIds.includes(id)) {
                             vidIds.push(id);
@@ -110,7 +101,10 @@ export const GetSmarterPage = () => {
                         break;
 
                     case "PING":
-                        console.log("Responding to client with: PONG ", parsedMessage.parameters);
+                        console.log(
+                            "Responding to client with: PONG ",
+                            parsedMessage.parameters
+                        );
                         client.send(`PONG ${parsedMessage.parameters}`);
                         break;
 
@@ -129,7 +123,7 @@ export const GetSmarterPage = () => {
                 `https://youtube.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${YOUTUBE_API_KEY}`
             );
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error("Network response was not ok");
             }
             const data = await response.json();
             console.log(data);
@@ -139,7 +133,9 @@ export const GetSmarterPage = () => {
                     let newVideo = {
                         id: videoId,
                         chatter: chatter,
-                        duration: moment.duration(video.contentDetails.duration).asSeconds(),
+                        duration: moment
+                            .duration(video.contentDetails.duration)
+                            .asSeconds(),
                         viewCount: video.statistics.viewCount,
                         likeCount: video.statistics.likeCount,
                         thumbnailUrl: video.snippet.thumbnails.medium.url,
@@ -147,25 +143,44 @@ export const GetSmarterPage = () => {
                         channelTitle: video.snippet.channelTitle,
                         publishedAt: video.snippet.publishedAt,
                         title: video.snippet.title,
-                        submittedAt: Date.now()
-                    }
-                    setVideos(oldState => [...oldState, newVideo]);
+                        submittedAt: Date.now(),
+                    };
+                    setVideos((oldState) => [...oldState, newVideo]);
 
-                    console.log(newVideo, durationFilter)
+                    console.log(newVideo, durationFilter);
 
                     if (durationFilter == 0) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
+                        setFilteredVideos((oldState) => [
+                            ...oldState,
+                            newVideo,
+                        ]);
                     } else if (durationFilter == 1 && newVideo.duration < 240) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
-                    } else if (durationFilter == 2 && newVideo.duration >= 240 && newVideo.duration < 1200) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
-                    } else if (durationFilter == 3 && newVideo.duration >= 1200) {
-                        setFilteredVideos(oldState => [...oldState, newVideo]);
+                        setFilteredVideos((oldState) => [
+                            ...oldState,
+                            newVideo,
+                        ]);
+                    } else if (
+                        durationFilter == 2 &&
+                        newVideo.duration >= 240 &&
+                        newVideo.duration < 1200
+                    ) {
+                        setFilteredVideos((oldState) => [
+                            ...oldState,
+                            newVideo,
+                        ]);
+                    } else if (
+                        durationFilter == 3 &&
+                        newVideo.duration >= 1200
+                    ) {
+                        setFilteredVideos((oldState) => [
+                            ...oldState,
+                            newVideo,
+                        ]);
                     }
                 }
             }
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error("Error fetching data:", error);
         }
     };
 
@@ -186,18 +201,26 @@ export const GetSmarterPage = () => {
                 break;
 
             case 1:
-                setFilteredVideos(videos.filter(video => video.duration < 240));
+                setFilteredVideos(
+                    videos.filter((video) => video.duration < 240)
+                );
                 break;
 
             case 2:
-                setFilteredVideos(videos.filter(video => video.duration >= 240 && video.duration < 1200));
+                setFilteredVideos(
+                    videos.filter(
+                        (video) =>
+                            video.duration >= 240 && video.duration < 1200
+                    )
+                );
                 break;
 
             case 3:
-                setFilteredVideos(videos.filter(video => video.duration >= 1200));
+                setFilteredVideos(
+                    videos.filter((video) => video.duration >= 1200)
+                );
                 break;
         }
-
     };
 
     const saveVideo = async (index) => {
@@ -361,19 +384,53 @@ export const GetSmarterPage = () => {
                                 </Typography>
                                 <Stack direction={"row"} spacing={2}>
                                     <FormGroup>
-                                        <FormControlLabel control={<Checkbox checked={checked[0]} onChange={handleChange1} />} label="default" />
-                                        <FormControlLabel control={<Checkbox checked={checked[1]} onChange={handleChange2} />} label="duration" />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    checked={checked[0]}
+                                                    onChange={handleChange1}
+                                                />
+                                            }
+                                            label="default"
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    checked={checked[1]}
+                                                    onChange={handleChange2}
+                                                />
+                                            }
+                                            label="duration"
+                                        />
                                     </FormGroup>
                                     <FormGroup>
-                                        <FormControlLabel control={<Checkbox checked={checked[2]} onChange={handleChange3} />} label="views" />
-                                        <FormControlLabel control={<Checkbox checked={checked[3]} onChange={handleChange4} />} label="likes" />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    checked={checked[2]}
+                                                    onChange={handleChange3}
+                                                />
+                                            }
+                                            label="views"
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    checked={checked[3]}
+                                                    onChange={handleChange4}
+                                                />
+                                            }
+                                            label="likes"
+                                        />
                                     </FormGroup>
                                 </Stack>
                                 <Typography variant="body1" fontWeight={"bold"}>
                                     filter
                                 </Typography>
                                 <FormControl size="small">
-                                    <InputLabel id="duration-select-label">Filter</InputLabel>
+                                    <InputLabel id="duration-select-label">
+                                        Filter
+                                    </InputLabel>
                                     <Select
                                         labelId="duration-select-label"
                                         id="duration-select"
@@ -381,10 +438,18 @@ export const GetSmarterPage = () => {
                                         label="Filter"
                                         onChange={handleDurationFilterChange}
                                     >
-                                        <MenuItem value={0}><em>All</em></MenuItem>
-                                        <MenuItem value={1}>under 4 minutes</MenuItem>
-                                        <MenuItem value={2}>4 - 20 minutes</MenuItem>
-                                        <MenuItem value={3}>over 20 minutes</MenuItem>
+                                        <MenuItem value={0}>
+                                            <em>All</em>
+                                        </MenuItem>
+                                        <MenuItem value={1}>
+                                            under 4 minutes
+                                        </MenuItem>
+                                        <MenuItem value={2}>
+                                            4 - 20 minutes
+                                        </MenuItem>
+                                        <MenuItem value={3}>
+                                            over 20 minutes
+                                        </MenuItem>
                                     </Select>
                                 </FormControl>
                             </Stack>
@@ -401,11 +466,19 @@ export const GetSmarterPage = () => {
                             >
                                 {connected ? (
                                     <WifiIcon
-                                        sx={{ color: "action.active", mr: 1, my: 0.5 }}
+                                        sx={{
+                                            color: "action.active",
+                                            mr: 1,
+                                            my: 0.5,
+                                        }}
                                     />
                                 ) : (
                                     <WifiOffIcon
-                                        sx={{ color: "action.active", mr: 1, my: 0.5 }}
+                                        sx={{
+                                            color: "action.active",
+                                            mr: 1,
+                                            my: 0.5,
+                                        }}
                                     />
                                 )}
                                 <Typography variant="body1" fontWeight={"bold"}>
@@ -433,4 +506,4 @@ export const GetSmarterPage = () => {
             </Drawer>
         </Box>
     );
-}
+};
