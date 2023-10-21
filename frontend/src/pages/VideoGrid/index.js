@@ -3,25 +3,20 @@ import React, { useEffect, useState } from "react";
 import {
     Grid,
     Box,
-    CardContent,
     Typography,
     Chip,
     IconButton,
     Stack,
 } from "@mui/material";
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
 import {
     formatPublished,
     formatViewsLikes,
     formatDuration,
 } from "utils/video_formatters";
-
-import BulletPoint from "components/BulletPoint";
 
 import "components/VideoGrid/styles/VideoGrid.css"
 
@@ -71,20 +66,18 @@ export default function VideoGrid({ videos }) {
                             </Box>
                         )}
                     </Box>
-                    <Box>
+                    <Box padding={.25}>
                         <Typography
                             variant="body1"
-                            gutterBottom
                             fontWeight={600}
-                            fontSize={"20px"}
-                            lineHeight={"1.5"}
+                            fontSize={"16px"}
                             margin={0}
                             sx={{ color: "#0f0f0f" }}
                         >
                             {video.title}
                         </Typography>
                         <Typography
-                            fontSize={"18px"}
+                            fontSize={"14px"}
                             lineHeight="2.5"
                             fontWeight={500}
                         >
@@ -99,16 +92,16 @@ export default function VideoGrid({ videos }) {
                                 {video.channelTitle}
                             </a>
                         </Typography>
-                        <Stack direction={"row"} alignContent={"center"} spacing={1} color="#606060" marginBottom={"16px"}>
-                            <Typography variant="overline" fontSize="16px" lineHeight="1.5" fontWeight={500}>
+                        <Stack direction={"row"} alignItems={"center"} spacing={1} color="#606060">
+                            <Typography variant="overline" fontSize="12px" lineHeight="1.5" fontWeight={400}>
                                 {formatViewsLikes(video.viewCount)} views
                             </Typography>
-                            <BulletPoint />
-                            <Typography variant="overline" fontSize="16px" fontWeight={500} lineHeight="1.5">
+                            <FiberManualRecordIcon sx={{ fontSize: "6px" }} />
+                            <Typography variant="overline" fontSize="12px" fontWeight={400} lineHeight="1.5">
                                 {formatViewsLikes(video.likeCount)} likes
                             </Typography>
-                            <BulletPoint />
-                            <Typography variant="overline" fontSize="16px" fontWeight={500} lineHeight="1.5">
+                            <FiberManualRecordIcon sx={{ fontSize: "6px" }} />
+                            <Typography variant="overline" fontSize="12px" fontWeight={400} lineHeight="1.5">
                                 {formatPublished(video.publishedAt)} ago
                             </Typography>
                         </Stack>
@@ -118,13 +111,9 @@ export default function VideoGrid({ videos }) {
                             justifyContent="space-between"
                             alignItems="center"
                         >
-                            <Chip label={video.submittedBy} />
-                            <IconButton onClick={(event) => onSaveVideo(index)}>
-                                {video.chatter ? (
-                                    <FavoriteIcon />
-                                ) : (
-                                    <FavoriteBorderIcon />
-                                )}
+                            <Chip label={video.submittedBy} size="small" />
+                            <IconButton>
+                                <FavoriteBorderIcon />
                             </IconButton>
                         </Box>
                     </Box>

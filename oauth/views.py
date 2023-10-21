@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.views.generic import View
 
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -18,17 +18,27 @@ from oauth.models import Profile
 CALLBACK_URL = "http://localhost:8000/callback/"
 
 
-class TwitchAuthView(APIView):
+class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(Self, request):
+        response = Response({"message": "logged_out"}, status=status.HTTP_200_OK)
+        response.delete_cookie("token")
+
+        return response
+
+
+class LoggedInView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
         if request.user.is_authenticated:
-            return HttpResponseRedirect("/")
+            serializer = UserWithProfileSerializer(request.user)
+            return Response(
+                {"logged_in": True, "user": serializer.data}, status=status.HTTP_200_OK
+            )
 
-        authorization_url = "https://id.twitch.tv/oauth2/authorize"
-        twitch_auth_url = f"{authorization_url}?client_id={settings.TWITCH_CLIENT_ID}&redirect_uri={CALLBACK_URL}&response_type=code&scope=user_read"
-
-        return HttpResponseRedirect(twitch_auth_url)
+        return Response({"logged_in": False}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ObtainTokenView(APIView):
@@ -63,13 +73,13 @@ class ObtainTokenView(APIView):
                 profile = Profile.objects.create(user=user, **user_data)
                 profile.save()
 
+            jwt_token = JWTAuthentication.create_jwt(user)
             serializer = UserWithProfileSerializer(user)
-            jwt_token = JWTAuthentication.create_jwt(user, serializer.data)
 
-            return Response(
-                jwt_token,
-                status=status.HTTP_200_OK,
-            )
+            response = Response({"user": serializer.data}, status=status.HTTP_200_OK)
+            response.set_cookie("token", jwt_token, httponly=True)
+
+            return response
 
         except Exception as err:
             return Response(

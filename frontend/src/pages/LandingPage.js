@@ -1,21 +1,41 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { useNavigate, Navigate } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import Cookies from 'js-cookie';
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Button } from "@mui/material";
+import { useAuth } from "../hooks/useAuth";
 
+const TOKEN_PARAMS = {
+    "response_type": "code",
+    "client_id": "bs99mqyazrfa7tut83c2wa108xasmz",
+    "scope": "user%3Aread%3Aemail",
+    "redirect_uri": "http://localhost:8000/auth/callback",
+    "state": Cookies.get("csrftoken"),
+}
 
 export const LandingPage = () => {
-    const { user, logout } = useAuth();
+    const { user, loggedIn } = useAuth();
 
-    let isAuthenticated;
-    if (user?.hasOwnProperty('username')) {
-        isAuthenticated = true
-    } else {
-        isAuthenticated = false
+    const handleLogin = async () => {
+        try {
+            let url = `https://id.twitch.tv/oauth2/authorize?`
+            const token_url = url + Object.keys(TOKEN_PARAMS).map(key => `${(key)}=${(TOKEN_PARAMS[key])}`).join("&");
+            window.location.assign(token_url);
+        } catch (err) {
+            console.error(err);
+        }
     }
+
+    const handleLogout = async () => {
+        try {
+            await fetch(`/oauth/logout`, { method: "POST" });
+            checkLoginState();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
 
     return (
         <Box
@@ -36,40 +56,22 @@ export const LandingPage = () => {
                 justifyContent: "center",
                 alignItems: "center"
             }}>
-                {user ? (
-                    <Typography
-                        variant="h2"
-                        component="div"
-                        sx={{ flexGrow: 1 }}
+                <Typography
+                    variant="h2"
+                    component="div"
+                    sx={{ flexGrow: 1 }}
+                >
+                    <a
+                        style={{
+                            color: "white",
+                            textDecoration: "none",
+                            fontWeight: "bold",
+                        }}
                     >
-                        <a
-                            style={{
-                                color: "white",
-                                textDecoration: "none",
-                                fontWeight: "bold",
-                            }}
-                        >
-                            {user.profile.display_name}
-                        </a>
-                    </Typography>
-                ) : (
-                    <Typography
-                        variant="h2"
-                        component="div"
-                        sx={{ flexGrow: 1 }}
-                    >
-                        <a
-                            style={{
-                                color: "white",
-                                textDecoration: "none",
-                                fontWeight: "bold",
-                            }}
-                        >
-                            MUDDLED
-                        </a>
-                    </Typography>
-                )}
-                {user ? (
+                        MUDDLED
+                    </a>
+                </Typography>
+                {loggedIn && (
                     <Button>
                         <Typography
                             variant="h5"
@@ -88,7 +90,7 @@ export const LandingPage = () => {
                             </a>
                         </Typography>
                     </Button>
-                ) : (null)}
+                )}
                 <Typography
                     variant="h5"
                     component="div"
@@ -105,27 +107,44 @@ export const LandingPage = () => {
                         Archives
                     </a>
                 </Typography>
-                {user ? (
-                    <Typography
-                        variant="h5"
-                        component="div"
-                        marginRight={"48px"}
-                    >
-                        <a
-                            href="/get-smarter"
-                            style={{
-                                color: "white",
-                                textDecoration: "none",
-                                fontWeight: "bold",
-                                textTransform: "uppercase"
-                            }}
+                {loggedIn ? (
+                    <>
+                        <Typography
+                            variant="h5"
+                            component="div"
+                            marginRight={"48px"}
                         >
-                            Get Smarter
-                        </a>
-                    </Typography>
-                ) : (null)}
-                {user ? (
-                    <Button onClick={logout}>
+                            <a
+                                href="/get-smarter"
+                                style={{
+                                    color: "white",
+                                    textDecoration: "none",
+                                    fontWeight: "bold",
+                                    textTransform: "uppercase"
+                                }}
+                            >
+                                Get Smarter
+                            </a>
+                        </Typography>
+                        <Button onClick={handleLogout}>
+                            <Typography
+                                variant="h5"
+                                component="div"
+                                marginRight={"48px"}
+                            >
+                                <a
+                                    style={{
+                                        color: "white",
+                                        textDecoration: "none",
+                                        fontWeight: "bold",
+                                    }} >
+                                    LOGOUT
+                                </a>
+                            </Typography>
+                        </Button>
+                    </>
+                ) : (
+                    <Button onClick={handleLogin}>
                         <Typography
                             variant="h5"
                             component="div"
@@ -137,26 +156,10 @@ export const LandingPage = () => {
                                     textDecoration: "none",
                                     fontWeight: "bold",
                                 }} >
-                                LOGOUT
+                                LOGIN
                             </a>
                         </Typography>
                     </Button>
-                ) : (
-                    <Typography
-                        variant="h5"
-                        component="div"
-                        marginRight={"48px"}
-                    >
-                        <a
-                            href="/oauth/auth/"
-                            style={{
-                                color: "white",
-                                textDecoration: "none",
-                                fontWeight: "bold",
-                            }} >
-                            LOGIN
-                        </a>
-                    </Typography>
                 )}
             </Box>
         </Box>

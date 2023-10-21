@@ -1,5 +1,7 @@
 import jwt
 
+from jwt.exceptions import InvalidSignatureError
+
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -13,17 +15,22 @@ User = get_user_model()
 
 class JWTAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        jwt_token = request.META.get("HTTP_AUTHORIZATION")
+        jwt_token = request.COOKIES.get("token")
+        print("TOKEN ", jwt_token)
         if jwt_token is None:
             return None
 
         jwt_token = JWTAuthentication.get_the_token_from_header(jwt_token)
+        print("TOKEN ", jwt_token)
 
         try:
             payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=["HS256"])
-        except jwt.exceptions.InvalidSignatureError:
+            print("Payload: ", payload)
+        except InvalidSignatureError:
             raise AuthenticationFailed("Invalid Signature")
-        except:
+
+        except Exception as e:
+            print(type(e).__name__)
             raise ParseError()
 
         username = payload.get("user_identifier")
@@ -40,12 +47,11 @@ class JWTAuthentication(authentication.BaseAuthentication):
         return "Bearer"
 
     @classmethod
-    def create_jwt(cls, user, serializer):
+    def create_jwt(cls, user):
         payload = {
             "user_identifier": user.username,
             "exp": int((datetime.now() + timedelta(hours=5)).timestamp()),
             "iat": datetime.now().timestamp(),
-            "user": serializer,
         }
 
         jwt_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")

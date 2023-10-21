@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 
 
 export const ProtectedLayout = () => {
-    const { user } = useAuth();
+    const user = useAuth();
 
     if (!user) {
         return <Navigate to="/" />;

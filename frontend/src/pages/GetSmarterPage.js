@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { MaterialDesignContent, SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuth } from "../hooks/useAuth";
+import { AuthContext, useAuth } from "../hooks/useAuth";
 import { styled } from '@mui/system';
 import moment from 'moment';
 
@@ -24,16 +24,30 @@ import WifiIcon from "@mui/icons-material/Wifi";
 
 import VideoGrid from "./VideoGrid";
 import parseMessage from "utils/IRCMessageParser";
+import { useRouteLoaderData } from "react-router-dom";
+import { CardHeader } from "@mui/material";
 
-const CLIENT_ID = "2y515k4edhradk25bd9gzuutnalcw1";
-const YT_API_KEY = "AIzaSyBDR0OdMSLxUC8H_8wtkOJLakfoUrdBwXA";
+const CLIENT_ID = "hy7yxwyq9rne4k6jd83k50r9rerc2p";
+const YT_API_KEY = "AIzaSyB_QdcttdchWoUbu2087r02Bhm3RxcN0DU";
 const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
 
-const urls = [
-    "t4y4mhVe2r0",
-    "PAHJUDbbT9k",
-    "jBquj9KLgII"
+const DEFAULT_URLS = [
+    "https://youtu.be/y8K6QazBqrY",
+    "https://www.youtube.com/watch?v=YQ_xWvX1n9g",
+    "https://www.youtube.com/watch?v=jJbIEMGYg-Y",
+    "https://www.youtube.com/watch?v=xfedmnemZEQ",
+    "https://www.youtube.com/watch?v=13X3054PSvk",
+    "https://www.youtube.com/watch?v=UtMoMwohf0k",
+    "https://www.youtube.com/watch?v=5pYeoZaoWrA&t=5277s",
+    "https://www.youtube.com/watch?v=jBquj9KLgII",
+    "https://www.youtube.com/watch?v=Zr3ZOEAzewE&t=3388s",
+    "https://www.youtube.com/watch?v=jBquj9KLgII",
+    "https://youtu.be/ARa-OiWpTyw",
+    "https://youtu.be/Lcr76E28Mdg"
+
 ]
+
+const DEFAULT_MSG = ":crimpsonsloper!crimpsonsloper@crimpsonsloper.tmi.twitch.tv PRIVMSG #crimpsonsloper :"
 
 const DURATION_FILTERS = [
     { min: 0, max: 86400 },
@@ -42,8 +56,50 @@ const DURATION_FILTERS = [
     { min: 1200, max: 86400 }
 ]
 
+const SortByUI = ({ checked, handleSort }) => {
+    const sortedList = [0, 1, 2, 3].map(i =>
+        <Grid item xs={6}>
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        size="small"
+                        checked={checked[i]}
+                        onChange={(e) => handleSort(e, i)}
+                    />
+                }
+                label={<Typography variant="subtitle2" color="#000000">view count</Typography>}
+            />
+        </Grid>
+    )
+
+    return <Grid container>{sortedList}</Grid>
+}
+
+const FilterByUI = ({ checked, handleSort }) => {
+
+
+    return (
+        <FormControl size="small">
+            <InputLabel size="small" id="duration-select-label" sx={{ color: "#0E212E" }}>Filter</InputLabel>
+            <Select
+                labelId="duration-select-label"
+                id="duration-select"
+                value={durationFilter}
+                label="Filter"
+                onChange={handleFilterChange}
+                size="small"
+            >
+                <MenuItem value={0}><em>All</em></MenuItem>
+                <MenuItem value={1}>under 4 minutes</MenuItem>
+                <MenuItem value={2}>4 - 20 minutes</MenuItem>
+                <MenuItem value={3}>over 20 minutes</MenuItem>
+            </Select>
+        </FormControl>
+    )
+}
+
 const GetSmarterApp = () => {
-    const { user } = useAuth();
+    const user = { username: 'crimpsonsloper' }
     const idList = [];
 
     const [client, setClient] = useState(null);
@@ -53,16 +109,15 @@ const GetSmarterApp = () => {
     const [filteredVideos, setFilteredVideos] = useState([]);
     const [durationFilter, setDurationFilter] = useState(0);
     const [checked, setChecked] = useState([true, false, false, false]);
-    const [lastMessage, setLastMessage] = useState(null);
 
     const { enqueueSnackbar } = useSnackbar();
 
+    useEffect(() => {
+        setClient(new WebSocket('wss://irc-ws.chat.twitch.tv'))
+    }, [])
 
     useEffect(() => {
-        urls.forEach((u) => fetchVidData(u, "crimps"))
-        const connectWebSocket = () => {
-            const client = new WebSocket("wss://irc-ws.chat.twitch.tv");
-
+        if (client) {
             client.onopen = () => {
                 client.send(`PASS oauth:${CLIENT_ID}`);
                 client.send(`NICK muddled`);
@@ -72,41 +127,56 @@ const GetSmarterApp = () => {
                 handleAddVariant("Unexpected disconnect. Attempting to reconnect", 'error');
             };
 
-            client.onclose = () => {
-                handleAddVariant("The connection has been closed.", 'info');
+            client.onclose = (event) => {
+                console.log(event)
+                handleAddVariant(`The connection has been closed.`, 'info');
             };
 
-            client.onmessage = (event) => {
-                setLastMessage(event.data);
-            };
-
-            setClient(client);
+            client.onmessage = (event) => handleMessage(event)
         }
-
-        connectWebSocket();
-
-        return () => { if (client) client.close() };
-    }, []);
+    }, [client])
 
 
     const handleAddVariant = (message, variant) => {
         enqueueSnackbar(message, { variant });
     };
 
-
     useEffect(() => {
-        if (lastMessage) { handleMessage(lastMessage) }
-    }, [lastMessage]);
+        runFunctionWithRandomDelay();
+    }, [connected])
 
+    const runFunctionWithRandomDelay = () => {
+        if (connected) {
+            let u = Math.floor(Math.random() * 12);
+            let data = DEFAULT_MSG + DEFAULT_URLS[u]
+            let rawIrcMessage = data.trimEnd();
+            let messages = rawIrcMessage.split("\r\n");
 
-    const handleMessage = (data) => {
-        let rawIrcMessage = data.trimEnd();
+            messages.forEach((message) => {
+                let parsedMessage = parseMessage(message);
+                const match = parsedMessage.parameters.match(youtubeRegex);
+                const id = match && match[7].length == 11 ? match[7] : [];
+
+                if (id.length > 0) {
+                    fetchVidData(id, parsedMessage.source['nick'])
+                }
+            })
+
+            const delay = Math.random() * (3000 - 500) + 500;
+            setTimeout(runFunctionWithRandomDelay, delay);
+        }
+
+    }
+
+    const handleMessage = (event) => {
+        let rawIrcMessage = event.data.trimEnd();
         let messages = rawIrcMessage.split("\r\n");
 
         messages.forEach((message) => {
             try {
                 let parsedMessage = parseMessage(message);
                 if (parsedMessage) {
+                    console.log(parsedMessage)
                     switch (parsedMessage.command.command) {
                         case "PRIVMSG":
                             const match = parsedMessage.parameters.match(youtubeRegex);
@@ -143,7 +213,7 @@ const GetSmarterApp = () => {
                 console.log("ERROR PARSING MESSAGE: ", err);
             }
         });
-    };
+    }
 
     const fetchVidData = async (videoId, submittedBy) => {
         try {
@@ -191,32 +261,35 @@ const GetSmarterApp = () => {
 
     };
 
+    useEffect(() => {
+        console.log(videos, filteredVideos)
+    }, [videos, filteredVideos])
+
     const handleFilterChange = (event) => {
         setDurationFilter(event.target.value);
-        let tempVidList = [...videos, ...filteredVideos];
+        let tempVidList = videos.concat(filteredVideos);
         switch (event.target.value) {
             case 0:
-                setFilteredVideos(tempVidList);
+                setFilteredVideos([...tempVidList]);
                 setVideos([])
                 break;
 
             case 1:
-                setFilteredVideos(tempVidList.filter(video => video.duration < 240));
-                setVideos(tempVidList.filter(video => video.duration >= 240))
+                setFilteredVideos([...tempVidList].filter(video => video.duration < 240));
+                setVideos([...tempVidList].filter(video => video.duration >= 240));
                 break;
 
             case 2:
-                setFilteredVideos(tempVidList.filter(video => video.duration >= 240 && video.duration < 1200));
-                setVideos(tempVidList.filter(video => video.duration < 240 && video.duration >= 1200))
+                setFilteredVideos([...tempVidList].filter(video => video.duration >= 240 && video.duration < 1200));
+                setVideos([...tempVidList].filter(video => video.duration < 240 && video.duration >= 1200))
                 break;
 
             case 3:
-                setFilteredVideos(tempVidList.filter(video => video.duration >= 1200));
-                setVideos(tempVidList.filter(video => video.duration < 1200));
+                setFilteredVideos([...tempVidList].filter(video => video.duration >= 1200));
+                setVideos([...tempVidList].filter(video => video.duration < 1200));
                 break;
         }
         setChecked([true, false, false, false]);
-        setFilteredVideos([...filteredVideos].sort((a, b) => a.submittedAt - b.submittedAt))
     };
 
     const handleConnect = () => {
@@ -226,7 +299,6 @@ const GetSmarterApp = () => {
             client.send(`JOIN #${user.username}`);
         }
     };
-
 
     const handleSort = (event, sortBy) => {
         const newChecked = [false, false, false, false];
@@ -295,87 +367,13 @@ const GetSmarterApp = () => {
                     height={"100%"}
                 >
                     <Card width="100%" variant="outlined">
+                        <CardHeader title="sort by" />
                         <CardContent >
-                            <Stack
-                                direction={"column"}
-                                spacing={2}
-                                justifyContent="center"
-                                alignItems="stretch"
-                            >
-                                <Typography variant="subtitle1" fontWeight={"bold"} color="#0E212E">
-                                    sort by
-                                </Typography>
-                                <Stack
-                                    direction={"row"}
-                                    width="100%"
-                                    justifyContent="space-around"
-                                    alignItems="center"
-                                >
-                                    <FormGroup>
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    size="large"
-                                                    checked={checked[0]}
-                                                    onChange={(e) => handleSort(e, 0)}
-                                                />
-                                            }
-                                            label={<Typography color="#000000">default</Typography>}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    size="large"
-                                                    checked={checked[1]}
-                                                    onChange={(e) => handleSort(e, 1)}
-                                                />
-                                            }
-                                            label={<Typography color="#000000">duration</Typography>}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    size="large"
-                                                    checked={checked[2]}
-                                                    onChange={(e) => handleSort(e, 2)}
-                                                />
-                                            }
-                                            label={<Typography color="#000000">view count</Typography>}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    size="large"
-                                                    checked={checked[3]}
-                                                    onChange={(e) => handleSort(e, 3)}
-                                                />
-                                            }
-                                            label={<Typography color="#000000">like count</Typography>}
-                                        />
-                                    </FormGroup>
-                                </Stack>
-                                <Typography variant="subtitle1" fontWeight={"bold"} color="#0E212E">
-                                    filter
-                                </Typography>
-                                <FormControl>
-                                    <InputLabel id="duration-select-label" sx={{ color: "#0E212E" }}>Filter</InputLabel>
-                                    <Select
-                                        labelId="duration-select-label"
-                                        id="duration-select"
-                                        value={durationFilter}
-                                        label="Filter"
-                                        onChange={handleFilterChange}
-                                        size="large"
-                                    >
-                                        <MenuItem value={0}><em>All</em></MenuItem>
-                                        <MenuItem value={1}>under 4 minutes</MenuItem>
-                                        <MenuItem value={2}>4 - 20 minutes</MenuItem>
-                                        <MenuItem value={3}>over 20 minutes</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Stack>
+                            <SortByUI handleSort={handleSort} checked={checked} />
+                        </CardContent>
+                        <CardHeader title="filter by" />
+                        <CardContent >
+
                         </CardContent>
                     </Card>
                     <Card width="100%" variant="outlined">
@@ -391,16 +389,16 @@ const GetSmarterApp = () => {
                                     <WifiOffIcon sx={{
                                         color: "#96a2b8",
                                         mr: 1, my: 0.5,
-                                        fontSize: "40px"
+                                        fontSize: "30px"
                                     }} />
                                 ) : (
                                     <WifiIcon sx={{
                                         color: !connected ? "#96a2b8" : "#2152ff",
                                         mr: 1, my: 0.5,
-                                        fontSize: "40px"
+                                        fontSize: "30px"
                                     }} />
                                 )}
-                                <Typography variant="h4" fontWeight={"bold"} color={"#0E212E"}>
+                                <Typography variant="h6" fontWeight={"bold"} color={"#0E212E"}>
                                     {user.username}
                                 </Typography>
                             </Stack>
@@ -430,7 +428,7 @@ const GetSmarterApp = () => {
 
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
-    fontSize: "16px",
+    fontSize: "14px",
     fontFamily: "Lexend",
     '&.notistack-MuiContent-default': {
         backgroundColor: '#313131',
@@ -450,7 +448,8 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
 }));
 
 
-const GetSmarterPage = () => {
+export const GetSmarterPage = () => {
+
     return (
         <SnackbarProvider
             maxSnack={3}
@@ -461,11 +460,9 @@ const GetSmarterPage = () => {
                 warning: StyledMaterialDesignContent,
                 info: StyledMaterialDesignContent
             }}
-            autoHideDuration={5000}
+            autoHideDuration={3000}
         >
             <GetSmarterApp />
         </SnackbarProvider>
     );
 }
-
-export default GetSmarterPage;

@@ -1,38 +1,40 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import React, { useEffect, createContext, useContext, useState, useCallback } from "react";
+import Cookies from "js-cookie";
 
+export const AuthContext = createContext();
 
-const AuthContext = createContext();
+export const AuthProvider = ({ children }) => {
+    const [loggedIn, setLoggedIn] = useState(null);
+    const [user, setUser] = useState(null);
 
-export const AuthProvider = ({ children, userData }) => {
-    const [user, setUser] = useState(userData);
-    const navigate = useNavigate();
+    const checkLoginState = useCallback(async () => {
+        try {
+            const response = await fetch(`/oauth/logged_in`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + Cookies.get('token')
+                }
+            });
+            const { logged_in, user } = await response.json()
+            setLoggedIn(logged_in);
+            user && setUser(user);
+        } catch (err) {
+            console.error(err);
+        }
+    }, []);
 
-    const login = async (data) => {
-        setUser(data.user);
-        setToken(data.token);
-        navigate("/", { replace: true });
+    useEffect(() => {
+        checkLoginState();
+    }, [checkLoginState])
 
-    };
-
-    const logout = () => {
-        setUser(null);
-        setToken(null)
-        navigate("/", { replace: true });
-    };
-
-    const value = useMemo(
-        () => ({
-            user,
-            login,
-            logout
-        }),
-        [user]
+    return (
+        <AuthContext.Provider value={{ loggedIn, checkLoginState, user }}>
+            {children}
+        </AuthContext.Provider>
     );
-
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
 export const useAuth = () => {
     return useContext(AuthContext);
 };
+
